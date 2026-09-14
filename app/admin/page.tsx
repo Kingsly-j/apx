@@ -98,8 +98,6 @@ function formatStorageError(bucket: string, action: string, error: unknown) {
 }
 
 export default function AdminPage() {
-  const hiddenPortalRef = useRef<HTMLDivElement>(null);
-  const revealInputRef = useRef<HTMLInputElement>(null);
   const revealBufferRef = useRef("");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [form, setForm] = useState(emptyForm);
@@ -142,9 +140,6 @@ export default function AdminPage() {
       const element = target as HTMLElement | null;
       const tagName = element?.tagName?.toLowerCase();
 
-      // The access input is handled by onChange; avoid counting each character twice.
-      if (element === revealInputRef.current) return true;
-
       return (
         tagName === "input" ||
         tagName === "textarea" ||
@@ -161,7 +156,16 @@ export default function AdminPage() {
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (isTypingInsideField(event.target) || event.key.length !== 1) return;
+      if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+      if (isTypingInsideField(event.target)) {
+        revealBufferRef.current = "";
+        return;
+      }
+      if (event.key === "Backspace" || event.key === "Escape") {
+        revealBufferRef.current = "";
+        return;
+      }
+      if (event.key.length !== 1) return;
       checkReveal(event.key);
     }
 
@@ -180,24 +184,6 @@ export default function AdminPage() {
       document.removeEventListener("paste", handlePaste, true);
     };
   }, []);
-
-  useEffect(() => {
-    if (isLoginVisible) return;
-    hiddenPortalRef.current?.focus();
-    revealInputRef.current?.focus();
-  }, [isLoginVisible]);
-
-  function handleRevealInput(value: string) {
-    for (const character of value) {
-      revealBufferRef.current = `${revealBufferRef.current}${character.toLowerCase()}`.slice(
-        -ADMIN_REVEAL_WORD.length,
-      );
-    }
-
-    if (revealBufferRef.current === ADMIN_REVEAL_WORD) {
-      setIsLoginVisible(true);
-    }
-  }
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -429,26 +415,9 @@ export default function AdminPage() {
   if (!isLoginVisible) {
     return (
       <div
-        ref={hiddenPortalRef}
-        tabIndex={-1}
         className="min-h-[72vh] bg-[#f5f8fc] outline-none"
         aria-label="Admin portal hidden"
-        onClick={() => revealInputRef.current?.focus()}
       >
-        <input
-          ref={revealInputRef}
-          type="text"
-          autoCapitalize="none"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck={false}
-          aria-label="Admin access code"
-          className="fixed left-0 top-0 h-px w-px opacity-0"
-          onChange={(event) => {
-            handleRevealInput(event.target.value);
-            event.target.value = "";
-          }}
-        />
         <div className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">Bluecrest Logistics</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-blue-950 sm:text-5xl">
