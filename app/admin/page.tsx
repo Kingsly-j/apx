@@ -99,6 +99,13 @@ function formatStorageError(bucket: string, action: string, error: unknown) {
 
 export default function AdminPage() {
   const revealBufferRef = useRef("");
+  const [mobileSection, setMobileSection] = useState("overview");
+
+  function navigateSection(section: string) {
+    setMobileSection(section);
+    if (window.matchMedia("(max-width: 1023px)").matches) window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [selectedId, setSelectedId] = useState("");
@@ -470,9 +477,19 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="relative overflow-hidden bg-[#f5f8fc] pb-20 pt-10 sm:pb-24">
+    <div data-mobile-section={mobileSection} className="admin-dashboard relative bg-[#f5f8fc] pb-20 pt-4 sm:pb-24 lg:pt-10">
+      <nav aria-label="Dashboard sections" className="sticky top-0 z-40 mx-4 mb-5 rounded-2xl border border-blue-100 bg-white/95 p-3 shadow-lg backdrop-blur lg:hidden">
+        <label htmlFor="dashboard-section" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-600">Admin dashboard</label>
+        <select id="dashboard-section" value={mobileSection} onChange={event => navigateSection(event.target.value)} className="min-h-11 w-full rounded-xl border border-blue-200 bg-blue-50 px-3 text-base font-semibold text-blue-950">
+          <option value="overview">Overview &amp; account</option>
+          <option value="create">Create shipment</option>
+          <option value="records">Shipment records</option>
+          <option value="details">Update shipment</option>
+          {currentAdmin?.role === "Super admin" ? <option value="admins">Manage admins</option> : null}
+        </select>
+      </nav>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <section className="overflow-hidden rounded-[30px] bg-blue-950 text-white shadow-[0_34px_100px_rgba(16,43,70,0.22)]">
+        <section data-dashboard-panel="overview" className="overflow-hidden rounded-[30px] bg-blue-950 text-white shadow-[0_34px_100px_rgba(16,43,70,0.22)]">
           <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1fr_0.8fr] lg:p-14">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-100 sm:text-sm sm:tracking-[0.34em]">Admin operations</p>
@@ -510,8 +527,9 @@ export default function AdminPage() {
           </div>
         </section>
 
-        <section className="mt-10 grid gap-8 lg:grid-cols-[0.92fr_1.08fr]">
-          <form onSubmit={createShipment} className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
+        <section className="contents lg:mt-10 lg:grid lg:gap-8 lg:grid-cols-[0.92fr_1.08fr]">
+          {adminMessage ? <p role="status" className="mb-4 rounded-2xl bg-blue-50 p-4 text-sm text-blue-700 lg:hidden">{adminMessage}</p> : null}
+          <form data-dashboard-panel="create" onSubmit={createShipment} className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Create shipment</p>
             <h2 className="mt-3 text-3xl font-semibold text-blue-950">New cargo file</h2>
             <div className="mt-7 grid gap-4">
@@ -564,15 +582,15 @@ export default function AdminPage() {
                 <textarea aria-label="Tracking note (optional)" rows={4} maxLength={2000} value={form.note} onChange={event => setForm(current => ({ ...current, note: event.target.value }))} placeholder="Add a message for the customer, if needed." className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none focus:border-blue-500 focus:bg-white" />
                 <span className="text-xs text-slate-500">Shown on the tracking page only when provided.</span>
               </label>
-              {adminMessage ? <p className="rounded-2xl bg-blue-50 p-4 text-sm text-blue-700">{adminMessage}</p> : null}
+              {adminMessage ? <p className="hidden rounded-2xl bg-blue-50 p-4 text-sm text-blue-700 lg:block">{adminMessage}</p> : null}
               <button disabled={isSaving} className="mt-2 rounded-full bg-blue-600 px-6 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300">
                 {isSaving ? "Saving..." : "Create and generate code"}
               </button>
             </div>
           </form>
 
-          <div className="grid gap-6">
-            <section className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
+          <div className="contents lg:grid lg:gap-6">
+            <section data-dashboard-panel="records" className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Created shipments</p>
@@ -592,7 +610,7 @@ export default function AdminPage() {
                           : "border-blue-100 bg-white hover:border-blue-300 hover:bg-blue-50/60"
                       }`}
                     >
-                      <button type="button" onClick={() => setSelectedId(shipment.id)} className="block w-full text-left">
+                      <button type="button" onClick={() => { setSelectedId(shipment.id); navigateSection("details"); }} className="block w-full text-left">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div>
                             <p className="text-lg font-semibold text-blue-950">{shipment.customerName}</p>
@@ -633,8 +651,10 @@ export default function AdminPage() {
               </div>
             </section>
 
+            {!selectedShipment ? <section data-dashboard-panel="details" className="rounded-2xl bg-white p-6 text-blue-950 lg:hidden"><p>Select a shipment from records to update it.</p><button type="button" onClick={() => navigateSection("records")} className="mt-4 min-h-11 rounded-full bg-blue-600 px-5 text-sm font-semibold text-white">View records</button></section> : null}
             {selectedShipment ? (
-              <section className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
+              <section data-dashboard-panel="details" className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
+                <button type="button" onClick={() => navigateSection("records")} className="mb-4 min-h-11 rounded-full bg-blue-50 px-4 text-sm font-semibold text-blue-700 lg:hidden">? Back to records</button>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Update shipment</p>
                 <div className="mt-4 rounded-[22px] bg-blue-50 p-5">
                   <p className="text-sm font-semibold text-blue-950">Bluecrest tracking code</p>
@@ -737,7 +757,7 @@ export default function AdminPage() {
             ) : null}
 
             {currentAdmin?.role === "Super admin" ? (
-              <section className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
+              <section data-dashboard-panel="admins" className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Admin management</p>
                 <h2 className="mt-3 text-3xl font-semibold text-blue-950">Add admin</h2>
                 <p className="mt-3 text-sm leading-6 text-blue-950/65">
