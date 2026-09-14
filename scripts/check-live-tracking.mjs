@@ -27,6 +27,8 @@ try {
   const form=admin.locator('form').filter({has:admin.getByRole('heading',{name:'New cargo file'})});
   const fields={'Customer name':marker,'Customer email':'integration-test@example.com','Cargo description':'Temporary test cargo — remove after verification','Departure location':'Lagos, Nigeria','Destination':'London, United Kingdom','Current location':'Murtala Muhammed International Airport, Lagos, Nigeria','ETA':'2026-10-01'};
   for(const [name,value] of Object.entries(fields)) await form.getByLabel(name,{exact:true}).fill(value);
+  await expect(form.getByLabel('ETA',{exact:true})).toHaveAttribute('type','date');
+  await form.getByLabel('Tracking note (optional)',{exact:true}).fill('Please call on arrival.\nReception accepts deliveries until 5 PM.');
   await form.locator('input[type=file]').setInputFiles('public/testimonials/portrait-1.jpg');
   await form.getByRole('button',{name:'Create and generate code'}).click();
   await expect(form.getByRole('button',{name:'Create and generate code'})).toBeEnabled();
@@ -48,6 +50,7 @@ try {
   await expect(visitor.getByText('Lagos, Nigeria',{exact:true})).toBeVisible();
   await expect(visitor.getByText('London, United Kingdom',{exact:true})).toBeVisible();
   await expect(visitor.getByText('2026-10-01',{exact:true})).toBeVisible();
+  await expect(visitor.getByRole('region',{name:'Shipment note'})).toContainText('Reception accepts deliveries until 5 PM.');
   if(uploadWorked) {
     const photo=visitor.getByRole('img',{name:'Shipment cargo',exact:true});
     await expect(photo).toBeVisible();
@@ -56,6 +59,18 @@ try {
     console.log('PASS: uploaded Supabase photo is stored in Firebase and loads on public tracking.');
   }
   const editor=admin.locator('section').filter({has:admin.getByText('Update shipment',{exact:true})}).last();
+  await expect(editor.getByLabel('ETA',{exact:true})).toHaveAttribute('type','date');
+  await editor.getByLabel('ETA',{exact:true}).fill('2026-10-02');
+  await expect(visitor.getByText('2026-10-02',{exact:true})).toBeVisible({timeout:25000});
+  await editor.getByLabel('Tracking note',{exact:true}).fill('Delivery rescheduled. Please contact the receiving desk.');
+  await editor.getByRole('button',{name:'Save note',exact:true}).click();
+  await expect(visitor.getByRole('region',{name:'Shipment note'})).toContainText('Delivery rescheduled.',{timeout:25000});
+  record=await findTestRecord();
+  if(record.fields.note.stringValue!=='Delivery rescheduled. Please contact the receiving desk.' || record.fields.eta.stringValue!=='2026-10-02') throw Error('ETA/note not persisted in Firebase');
+  await editor.getByLabel('Tracking note',{exact:true}).fill('');
+  await editor.getByRole('button',{name:'Save note',exact:true}).click();
+  await expect(visitor.getByRole('region',{name:'Shipment note'})).toHaveCount(0,{timeout:25000});
+  console.log('PASS: both ETA date pickers, note creation/editing, Firebase persistence, live display, and hiding a cleared note.');
   await expect(visitor.locator('iframe[title="Shipment current location map"]')).toHaveAttribute('src',/Murtala/);
   await editor.getByLabel('Current location',{exact:true}).fill('Heathrow Airport, London, United Kingdom');
   await expect(visitor.locator('iframe[title="Shipment current location map"]')).toHaveAttribute('src',/Heathrow/,{timeout:25000});

@@ -592,7 +592,7 @@ export default function AdminPage() {
               </label>
               <label className="grid gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-950/55">Tracking note (optional)</span>
-                <textarea rows={4} maxLength={2000} value={form.note} onChange={event => setForm(current => ({ ...current, note: event.target.value }))} placeholder="Add a message for the customer, if needed." className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none focus:border-blue-500 focus:bg-white" />
+                <textarea aria-label="Tracking note (optional)" rows={4} maxLength={2000} value={form.note} onChange={event => setForm(current => ({ ...current, note: event.target.value }))} placeholder="Add a message for the customer, if needed." className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none focus:border-blue-500 focus:bg-white" />
                 <span className="text-xs text-slate-500">Shown on the tracking page only when provided.</span>
               </label>
               {adminMessage ? <p className="rounded-2xl bg-blue-50 p-4 text-sm text-blue-700">{adminMessage}</p> : null}

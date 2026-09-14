@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bluecrest Logistics
 
-## Getting Started
+Logistics website, browser-local admin dashboard, and Firebase-backed shipment tracking built with Next.js.
 
-First, run the development server:
+## Local setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Install dependencies with `npm ci`.
+2. Copy `.env.example` to `.env` and fill in the Firebase and Supabase configuration.
+3. Run `npm run dev` and open `http://localhost:3000`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The Supabase shipment-photo bucket is `blue`. Firestore uses the `shipments` collection. Environment files with real values, dependencies, and generated build output are excluded from Git.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Public logistics pages and testimonial slideshow.
+- Admin access at `/admin?admin=1`, or type `admin` on `/admin`.
+- Super-admin and admin accounts stored in the current browser, with password verifiers.
+- Shipment creation, editing, deletion, photo upload, ETA date pickers, and optional customer notes.
+- Public tracking at `/track?code=TRACKING_CODE`, with live Firestore updates and a map of the last recorded location.
 
-## Learn More
+See [ADMIN.md](ADMIN.md) for account behavior, storage requirements, and verification scripts. Admin accounts created in one browser are not shared with other browser profiles. Maps show recorded locations, not continuous GPS positions. Example testimonials are labeled as illustrative.
 
-To learn more about Next.js, take a look at the following resources:
+## Checks
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Run `npm run lint` and `npm run build`. Browser checks require Microsoft Edge and the development server running on port 3000.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `node scripts/check-admin.mjs`: isolated login and cloud-failure handling tests.
+- `node scripts/check-site.mjs`: public-page and navigation checks.
+- `node --env-file=.env scripts/verify-cloud.mjs`: live temporary storage verification.
+- `node --env-file=.env scripts/check-live-tracking.mjs`: live dashboard, photo, date, note, map, and tracking verification.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Live verification scripts create temporary test records and remove them afterward; use only with a project where that verification is authorized.
