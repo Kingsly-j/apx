@@ -1,0 +1,77 @@
+@import "tailwindcss";
+@import "../public/reference/fontawesome.css";
+@source "./content/*.html";
+
+@theme {
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --font-inter: var(--font-site-inter), Arial, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+.reviews-section { padding: 88px 24px; background: #f3f7fb; }
+.reviews-container { max-width: 1120px; margin: auto; }
+.reviews-heading { text-align: center; margin-bottom: 42px; }
+.reviews-eyebrow { color: #2563eb; font-size: 12px; letter-spacing: .18em; font-weight: 700; }
+.reviews-heading h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 750; letter-spacing: -.035em; margin: 12px 0; color: #102b46; }
+.reviews-heading p { color: #586b7c; }
+.reviews-heading .reviews-disclosure { font-size: 12px; margin: 12px auto 0; max-width: 560px; }
+.reviews-stage { display: grid; }
+.review-slide { grid-area: 1 / 1; display: grid; grid-template-columns: 300px 1fr; overflow: hidden; background: white; border: 1px solid #e0e8f0; border-radius: 22px; box-shadow: 0 14px 40px #1839580a; }
+.review-photo { position: relative; background: #d5e4ed; min-height: 360px; }
+.review-photo img { width: 100%; height: 100%; object-fit: cover; }
+.review-photo > span { position: absolute; bottom: 18px; left: 18px; background: #102b46e6; color: white; padding: 7px 12px; border-radius: 6px; font-size: 11px; }
+.review-copy { padding: 36px 48px; position: relative; display: flex; flex-direction: column; align-items: flex-start; }
+.review-service { background: #eff6ff; color: #2563eb; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; }
+.review-quote-mark { position: absolute; right: 32px; top: 12px; font: 100px Georgia, serif; color: #e7eff7; }
+.review-copy blockquote { font-size: clamp(18px, 2vw, 23px); line-height: 1.65; color: #20394f; margin: 22px 0 28px; position: relative; }
+.review-person { margin-top: auto; display: grid; gap: 4px; }
+.review-person strong { color: #102b46; font-size: 17px; }
+.review-person span { color: #67798a; font-size: 13px; }
+.review-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
+.review-arrows, .review-dots { display: flex; gap: 10px; }
+.review-arrows button { width: 44px; height: 44px; border: 1px solid #cddbe8; border-radius: 50%; color: #173e60; font-size: 22px; background: white; }
+.review-arrows button:hover { background: #2563eb; color: white; }
+.review-dots button { width: 12px; height: 12px; border-radius: 50%; background: #b8cbdc; }
+.review-dots button.is-active { background: #2563eb; }
+.review-play { color: #31516c; font-size: 13px; min-height: 44px; }
+@media (max-width: 640px) {
+  .reviews-section { padding: 56px 18px; }
+  .review-slide { grid-template-columns: 1fr; }
+  .review-photo { min-height: 0; height: 240px; }
+  .review-photo img { object-position: center 35%; }
+  .review-copy { padding: 25px; }
+  .review-copy blockquote { min-height: 210px; font-size: 18px; }
+  .review-controls { flex-wrap: wrap; }
+  .review-play { flex-basis: 100%; }
+}
+body { margin: 0; background: #f9fafb; color: #111827; font-family: var(--font-site-inter), Arial, sans-serif; }
+[x-cloak], [hidden] { display: none !important; }
+button, a, input, textarea { transition: color .2s, background-color .2s, border-color .2s, box-shadow .2s; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+a:focus-visible, button:focus-visible { outline: 3px solid #60a5fa; outline-offset: 4px; }
+.bg-opacity-50.bg-black { background-color: rgb(0 0 0 / .5); }
+.bg-opacity-50.bg-white { background-color: rgb(255 255 255 / .5); }
+.bg-opacity-20 { background-color: rgb(255 255 255 / .2); }
+.stat-number { opacity: 1; transform: none; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+@media (max-width: 600px) {
+  header > div:first-child .text-sm { font-size: 10px; gap: 8px; }
+  header > div:first-child .space-x-6 { gap: 8px; }
+  footer a { overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

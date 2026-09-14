@@ -1,0 +1,453 @@
+<div x-data="{ mobileMenuOpen: false, searchOpen: false }">
+    <!-- iOS-Compatible Preloader -->
+    
+
+    <!-- iOS-Compatible Header -->
+    <header class="relative bg-white shadow-lg z-50" style="will-change: transform;">
+        <!-- Top Bar -->
+        <div class="bg-primary-700 text-white py-2">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-clock text-primary-200"></i>
+                            <span>Open 24/7 for Global Logistics</span>
+                        </div>
+                        <div class="hidden md:flex items-center space-x-2">
+                            <i class="fas fa-phone text-primary-200"></i>
+                            <span>TOLL FREE Support</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-envelope text-primary-200"></i>
+                            <a href="mailto:support@bluecrestlogistics.com" class="hover:text-primary-200 transition-colors">
+                                support@bluecrestlogistics.com
+                            </a>
+                        </div>
+                        <!-- Google Translate with iOS fix -->
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="/" class="flex items-center">
+                            <img src="/reference/RYmllnMaPGn7hcskZYTk3Mmysh2jgAE3HKROtgHr.jpg" alt="Bluecrest Logistics" class="h-12 w-auto">
+                        </a>
+                    </div>
+
+                    <!-- Desktop Navigation -->
+                    <div class="hidden lg:flex items-center space-x-8">
+                        <a href="/" class="text-gray-900 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors border-b-2 border-transparent hover:border-primary-600">
+                            Home
+                        </a>
+                        <a href="/about" class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors border-b-2 border-transparent hover:border-primary-600">
+                            About
+                        </a>
+                        <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                            <button class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors border-b-2 border-transparent hover:border-primary-600 flex items-center" type="button" @click="open = !open" :aria-expanded="open">
+                                Services
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                            </button>
+                            <div x-show="open" x-cloak="" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
+                                <a href="/services" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                                    <i class="fas fa-ship mr-3 text-primary-600"></i>Sea/Ocean Freight
+                                </a>
+                                <a href="/services" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                                    <i class="fas fa-truck mr-3 text-primary-600"></i>Road Transportation
+                                </a>
+                                <a href="/services" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                                    <i class="fas fa-plane mr-3 text-primary-600"></i>Air Freight
+                                </a>
+                                <a href="/services" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                                    <i class="fas fa-warehouse mr-3 text-primary-600"></i>Warehousing
+                                </a>
+                                <a href="/services" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                                    <i class="fas fa-box mr-3 text-primary-600"></i>Packaging &amp; Storage
+                                </a>
+                                <a href="/diplomatic" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                                    <i class="fas fa-shield-alt mr-3 text-primary-600"></i>Diplomatic Services
+                                </a>
+                            </div>
+                        </div>
+                        <a href="/order" class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors border-b-2 border-transparent hover:border-primary-600">
+                            Track Shipment
+                        </a>
+                        <a href="/contact" class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors border-b-2 border-transparent hover:border-primary-600">
+                            Contact
+                        </a>
+                    </div>
+
+                    <!-- Search & CTA -->
+                    <div class="hidden lg:flex items-center space-x-4">
+                        <!-- Quick Track Search -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="p-2 text-gray-500 hover:text-primary-600 transition-colors" type="button" aria-label="Toggle options">
+                                <i class="fas fa-search text-lg"></i>
+                            </button>
+                            <!-- Dropdown for tracking -->
+                            <div x-show="open" x-cloak="" style="display: none; position: absolute; right: 0; top: 100%; z-index: 9999; margin-top: 0.5rem;" class="w-80 bg-white rounded-lg shadow-2xl border border-gray-200 p-4">
+                                <form method="get" action="/order" class="space-y-3" data-form-kind="tracking">
+                                                                        <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Track Your Shipment</label>
+                                        <input type="text" name="trackingnumber" placeholder="Enter tracking number..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" required="" aria-label="Enter tracking number...">
+                                    </div>
+                                    <button type="submit" class="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium">
+                                        <i class="fas fa-search mr-2"></i>Track Now
+                                    </button>
+                                <p class="form-feedback mt-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900" role="status" tabindex="-1" hidden=""></p></form>
+                            </div>
+                        </div>
+                        
+                        <!-- Get Quote Button -->
+                        <a href="/contact" class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium">
+                            Get Quote
+                        </a>
+                    </div>
+
+                    <!-- iOS-Compatible Mobile Menu Button -->
+                    <div class="lg:hidden flex items-center space-x-2">
+                        <button type="button" @click="searchOpen = !searchOpen" class="p-3 text-gray-500 hover:text-primary-600 transition-colors" aria-label="Toggle options">
+                            <i class="fas fa-search text-lg"></i>
+                        </button>
+                        <button type="button" @click="mobileMenuOpen = !mobileMenuOpen" class="p-3 text-gray-500 hover:text-primary-600 transition-colors" aria-label="Toggle navigation" :aria-expanded="mobileMenuOpen">
+                            <i class="fas fa-bars text-xl" x-show="!mobileMenuOpen" x-cloak=""></i>
+                            <i class="fas fa-times text-xl" x-show="mobileMenuOpen" x-cloak=""></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Search -->
+            <div x-show="searchOpen" x-cloak="" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="lg:hidden border-t border-gray-200 bg-gray-50 px-4 py-4">
+                <form method="get" action="/order" class="space-y-3" data-form-kind="tracking">
+                                        <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Track Your Shipment</label>
+                        <input type="text" name="trackingnumber" placeholder="Enter tracking number..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" required="" aria-label="Enter tracking number...">
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium">
+                        <i class="fas fa-search mr-2"></i>Track Now
+                    </button>
+                <p class="form-feedback mt-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900" role="status" tabindex="-1" hidden=""></p></form>
+            </div>
+
+            <!-- iOS-Compatible Mobile Navigation Menu -->
+            <div x-show="mobileMenuOpen" x-cloak="" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-0" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-0" class="lg:hidden border-t border-gray-200 bg-white" style="transform: translateZ(0); -webkit-overflow-scrolling: touch;">
+                <div class="px-4 py-6 space-y-2">
+                    <a href="/" class="block px-3 py-2 text-gray-900 font-medium hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                        Home
+                    </a>
+                    <a href="/about" class="block px-3 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                        About
+                    </a>
+                    <div x-data="{ servicesOpen: false }">
+                        <button @click="servicesOpen = !servicesOpen" class="w-full flex items-center justify-between px-3 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors" type="button">
+                            Services
+                            <i class="fas fa-chevron-down text-xs transition-transform" :class="servicesOpen ? 'rotate-180' : ''"></i>
+                        </button>
+                        <div x-show="servicesOpen" x-cloak="" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1" class="pl-6 mt-2 space-y-2">
+                            <a href="/services" class="block px-3 py-2 text-gray-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                                <i class="fas fa-ship mr-2 text-primary-600"></i>Sea/Ocean Freight
+                            </a>
+                            <a href="/services" class="block px-3 py-2 text-gray-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                                <i class="fas fa-truck mr-2 text-primary-600"></i>Road Transportation
+                            </a>
+                            <a href="/services" class="block px-3 py-2 text-gray-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                                <i class="fas fa-plane mr-2 text-primary-600"></i>Air Freight
+                            </a>
+                            <a href="/services" class="block px-3 py-2 text-gray-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                                <i class="fas fa-warehouse mr-2 text-primary-600"></i>Warehousing
+                            </a>
+                            <a href="/services" class="block px-3 py-2 text-gray-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                                <i class="fas fa-box mr-2 text-primary-600"></i>Packaging &amp; Storage
+                            </a>
+                            <a href="/diplomatic" class="block px-3 py-2 text-gray-600 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                                <i class="fas fa-shield-alt mr-2 text-primary-600"></i>Diplomatic Services
+                            </a>
+                        </div>
+                    </div>
+                    <a href="/order" class="block px-3 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                        Track Shipment
+                    </a>
+                    <a href="/contact" class="block px-3 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-colors">
+                        Contact
+                    </a>
+                    <div class="pt-4 border-t border-gray-200">
+                        <a href="/contact" class="block w-full text-center bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium">
+                            Get Quote
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Error Message Banner -->
+        
+        
+       
+    </header>
+
+
+
+        
+
+
+
+
+<section class="page-title wrapper clearfix" style="background-image: url('/reference/about-page-bg.jpg');">
+<div class="container">
+<div class="row">
+<div class="title-wrap wow fadeIn" data-wow-delay="1s">
+<h1>Diplomatic Bag and Secure Logistics</h1>
+<div class="breadcrumbs">
+<p>You Are Here :
+<span><a href="/">Home</a></span>
+<span class="arrow"><i class="icon icon-arrow-right"></i></span>
+<span><a href="/services">Services</a></span>
+<span class="arrow"><i class="icon icon-arrow-right"></i></span>
+<span>Diplomatic Bag and Secure Logistics</span></p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+
+<section id="content" class="clearfix">
+
+<div class="services-page wrapper bg-color">
+<div class="container">
+<div class="row">
+<div class="row wow fadeIn" data-wow-delay="0.5s">
+<div class="col-md-4">
+<img src="/reference/diplomatic-bag-compressor.jpg" alt="">
+</div>
+<div class="col-md-8">
+
+<p style="text-align: justify;">
+Our history incorporates more than 800 years of ensuring the Government’s diplomatic
+mail is protected. This means we are experts in ensuring mail and materials are where
+they need to be, when they need to be there, securely and without compromise.
+</p>
+<p style="text-align: justify;">
+Our service is global, including to hostile environments. We operate a secure,
+flexible and cost-effective door-to-door global service by ground and air.
+Our diplomatic courier services, known as the Bluecrest Logistics Messengers, make sure sensitive material is always kept safe throughout its
+entire journey.
+</p>
+ <p style="text-align: justify;">
+As well as securely delivering information and materials we also manage its disposal.
+Protecting information effectively includes making sure it is disposed of correctly
+when it is no longer needed. We destroy or dispose of all sensitive items, ranging
+from paper and other documents to hardware, in a secure, environmentally friendly
+service that has a full audit trail for complete assurance.
+</p>
+</div>
+</div>
+<div class="contact-us-banner text-center wow fadeIn" data-wow-delay="0.5s">
+<h2>We will take care of your cargo and deliver them safe and on time.</h2>
+<a href="/contact" class="button-normal">Contact Us Now</a>
+</div>
+</div>
+</div>
+</div>
+
+</section>
+
+
+
+
+
+
+        <!-- Modern Footer -->
+        <footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+            <!-- Main Footer Content -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Company Info -->
+                    <div class="lg:col-span-2">
+                        <div class="mb-6">
+                            <img src="/reference/RYmllnMaPGn7hcskZYTk3Mmysh2jgAE3HKROtgHr.jpg" alt="Bluecrest Logistics" class="h-12 w-auto mb-4 filter brightness-0 invert">
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4 text-white">Bluecrest Logistics</h3>
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            Providing Smart Logistics Solutions Across The World. We deliver excellence in shipping, 
+                            courier services, and package tracking with our global network of trusted partners.
+                        </p>
+                        <div class="flex space-x-4">
+                            <span class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                <i class="fab fa-facebook-f text-white"></i>
+                            </span>
+                            <span class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                <i class="fab fa-twitter text-white"></i>
+                            </span>
+                            <span class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                <i class="fab fa-linkedin-in text-white"></i>
+                            </span>
+                            <span class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors">
+                                <i class="fab fa-instagram text-white"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-6 text-white">Quick Links</h4>
+                        <ul class="space-y-3">
+                            <li>
+                                <a href="/" class="text-gray-300 hover:text-primary-400 transition-colors flex items-center">
+                                    <i class="fas fa-chevron-right text-xs mr-2 text-primary-500"></i>
+                                    Home
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/about" class="text-gray-300 hover:text-primary-400 transition-colors flex items-center">
+                                    <i class="fas fa-chevron-right text-xs mr-2 text-primary-500"></i>
+                                    About Us
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/services" class="text-gray-300 hover:text-primary-400 transition-colors flex items-center">
+                                    <i class="fas fa-chevron-right text-xs mr-2 text-primary-500"></i>
+                                    Our Services
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/order" class="text-gray-300 hover:text-primary-400 transition-colors flex items-center">
+                                    <i class="fas fa-chevron-right text-xs mr-2 text-primary-500"></i>
+                                    Track Shipment
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/contact" class="text-gray-300 hover:text-primary-400 transition-colors flex items-center">
+                                    <i class="fas fa-chevron-right text-xs mr-2 text-primary-500"></i>
+                                    Contact Us
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/diplomatic" class="text-gray-300 hover:text-primary-400 transition-colors flex items-center">
+                                    <i class="fas fa-chevron-right text-xs mr-2 text-primary-500"></i>
+                                    Diplomatic Services
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-6 text-white">Contact Info</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-envelope text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Email Us</p>
+                                    <a href="mailto:support@bluecrestlogistics.com" class="text-white hover:text-primary-400 transition-colors">
+                                        support@bluecrestlogistics.com
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-phone text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Call Us</p>
+                                    <p class="text-white">TOLL FREE Support</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <i class="fas fa-clock text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Working Hours</p>
+                                    <p class="text-white">24/7 Global Support</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Track -->
+                        <div class="mt-8">
+                            <h5 class="text-sm font-semibold mb-3 text-white">Quick Track</h5>
+                            <form method="get" action="/order" class="space-y-2" data-form-kind="tracking">
+                                                                <input type="text" name="trackingnumber" placeholder="Enter tracking number..." class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm" aria-label="Enter tracking number...">
+                                <button type="submit" class="w-full bg-primary-600 text-white py-2 px-3 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium">
+                                    <i class="fas fa-search mr-1"></i>Track
+                                </button>
+                            <p class="form-feedback mt-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900" role="status" tabindex="-1" hidden=""></p></form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Footer -->
+            <div class="border-t border-gray-700">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+                        <div class="text-center md:text-left">
+                            <p class="text-gray-400 text-sm">
+                                Copyright © <span id="currentYear">2026</span> Bluecrest Logistics. All rights reserved.
+                            </p>
+                        </div>
+                        <div class="flex items-center space-x-6 text-sm">
+                            <span class="text-gray-400 hover:text-primary-400 transition-colors">Privacy Policy</span>
+                            <span class="text-gray-400 hover:text-primary-400 transition-colors">Terms of Service</span>
+                            <span class="text-gray-400 hover:text-primary-400 transition-colors">Shipping Policy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- WhatsApp Float Button -->
+        
+
+    <!-- Core Scripts -->
+    
+    <!-- Alpine.js with iOS compatibility fixes -->
+    
+    
+    
+
+
+
+
+
+    
+    <!-- Custom Scripts -->
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
