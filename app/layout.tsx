@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import AdminAccess from "./admin-access";
 import "./globals.css";
 
 const inter = localFont({
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col"><AdminAccess />{children}</body>
     </html>
   );
 }

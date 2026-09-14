@@ -2,7 +2,7 @@
 
 import { bootstrapPasswordHash } from "@/lib/admin-bootstrap";
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   deleteShipmentRecord,
   generateTrackingCode,
@@ -42,7 +42,6 @@ type AdminAccount = {
   createdAt: string;
 };
 
-const ADMIN_REVEAL_WORD = "admin";
 const ADMIN_SESSION_KEY = "bluecrest-logistics-admin-session";
 const ADMIN_ACCOUNTS_KEY = "bluecrest-logistics-admin-accounts";
 const SUPER_ADMIN_EMAIL = "support@bluecrestlogistics.com";
@@ -98,7 +97,6 @@ function formatStorageError(bucket: string, action: string, error: unknown) {
 }
 
 export default function AdminPage() {
-  const revealBufferRef = useRef("");
   const [mobileSection, setMobileSection] = useState("overview");
 
   function navigateSection(section: string) {
@@ -126,7 +124,7 @@ export default function AdminPage() {
       const accounts = readAdminAccounts();
       setAdminAccounts(accounts);
 
-      if (window.location.hash.toLowerCase() === "#admin" || window.location.search.includes("admin=1")) {
+      if (window.location.hash.toLowerCase() === "#admin" || new URLSearchParams(window.location.search).get("admin") === "1") {
         setIsLoginVisible(true);
       }
 
@@ -143,53 +141,9 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    function isTypingInsideField(target: EventTarget | null) {
-      const element = target as HTMLElement | null;
-      const tagName = element?.tagName?.toLowerCase();
-
-      return (
-        tagName === "input" ||
-        tagName === "textarea" ||
-        tagName === "select" ||
-        Boolean(element?.isContentEditable)
-      );
-    }
-
-    function checkReveal(value: string) {
-      revealBufferRef.current = `${revealBufferRef.current}${value.toLowerCase()}`.slice(-ADMIN_REVEAL_WORD.length);
-      if (revealBufferRef.current === ADMIN_REVEAL_WORD) {
-        setIsLoginVisible(true);
-      }
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
-      if (isTypingInsideField(event.target)) {
-        revealBufferRef.current = "";
-        return;
-      }
-      if (event.key === "Backspace" || event.key === "Escape") {
-        revealBufferRef.current = "";
-        return;
-      }
-      if (event.key.length !== 1) return;
-      checkReveal(event.key);
-    }
-
-    function handlePaste(event: ClipboardEvent) {
-      if (isTypingInsideField(event.target)) return;
-      const text = event.clipboardData?.getData("text") ?? "";
-      for (const character of text) {
-        checkReveal(character);
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown, true);
-    document.addEventListener("paste", handlePaste, true);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
-      document.removeEventListener("paste", handlePaste, true);
-    };
+    const reveal = () => setIsLoginVisible(true);
+    window.addEventListener("admin-access", reveal);
+    return () => window.removeEventListener("admin-access", reveal);
   }, []);
 
   useEffect(() => {

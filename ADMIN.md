@@ -1,6 +1,6 @@
 # Bluecrest administration
 
-Open `/admin?admin=1` to sign in. The hidden portal at `/admin` also accepts the reveal word `admin`.
+Type `admin` outside inputs or editable fields on any page to open the admin login. On mobile, append `?admin=1` (or `&admin=1` when a query already exists) or `#admin` to any page URL. `/admin?admin=1` also opens login directly.
 
 The super admin email is `support@bluecrestlogistics.com`. The generated initial password is stored in the ignored `.env` file as `BLUECREST_SUPER_ADMIN_PASSWORD`. The client includes its SHA-256 verifier in `lib/admin-bootstrap.ts`.
 
