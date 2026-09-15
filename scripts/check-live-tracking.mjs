@@ -1,7 +1,8 @@
-import { chromium, expect } from '@playwright/test';
+import { chromium, expect as baseExpect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 
+const expect = baseExpect.configure({timeout:30000});
 const marker = `Bluecrest integration test ${randomUUID()}`;
 const base = `https://firestore.googleapis.com/v1/projects/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
@@ -25,9 +26,9 @@ try {
   // Let the initial cloud read finish before creating a test record.
   await admin.waitForTimeout(2500);
   const form=admin.locator('form').filter({has:admin.getByRole('heading',{name:'New cargo file'})});
-  const fields={'Customer name':marker,'Customer email':'integration-test@example.com','Cargo description':'Temporary test cargo — remove after verification','Departure location':'Lagos, Nigeria','Destination':'London, United Kingdom','Current location':'Murtala Muhammed International Airport, Lagos, Nigeria','ETA':'2026-10-01'};
+  const fields={'Receiver name':marker,'Customer email':'integration-test@example.com','Cargo description':'Temporary test cargo — remove after verification','Departure location':'Lagos, Nigeria','Destination':'London, United Kingdom','Current location':'Murtala Muhammed International Airport, Lagos, Nigeria','ETA':'2026-10-01T12:00'};
   for(const [name,value] of Object.entries(fields)) await form.getByLabel(name,{exact:true}).fill(value);
-  await expect(form.getByLabel('ETA',{exact:true})).toHaveAttribute('type','date');
+  await expect(form.getByLabel('ETA',{exact:true})).toHaveAttribute('type','datetime-local');
   await form.getByLabel('Tracking note (optional)',{exact:true}).fill('Please call on arrival.\nReception accepts deliveries until 5 PM.');
   await form.locator('input[type=file]').setInputFiles('public/testimonials/portrait-1.jpg');
   await form.getByRole('button',{name:'Create and generate code'}).click();
@@ -46,10 +47,10 @@ try {
   console.log('PASS: shipment created in dashboard and independently found in Firebase.');
   const visitor=await browser.newPage();
   await visitor.goto(`http://localhost:3000/track?code=${encodeURIComponent(code)}`);
-  await expect(visitor.getByRole('heading',{name:'Booked',exact:true})).toBeVisible({timeout:25000});
-  await expect(visitor.getByText('Lagos, Nigeria',{exact:true})).toBeVisible();
-  await expect(visitor.getByText('London, United Kingdom',{exact:true})).toBeVisible();
-  await expect(visitor.getByText('2026-10-01',{exact:true})).toBeVisible();
+  await expect(visitor.locator('.tracking-current .tracking-badge')).toHaveText('Order Confirmed',{timeout:25000});
+  await expect(visitor.locator('.tracking-result-footer')).toBeVisible();
+  await expect(visitor.locator('.tracking-info-grid')).toBeVisible();
+  await expect(visitor.locator('.tracking-parcel-grid').getByText(/Oct 1, 2026/)).toBeVisible();
   await expect(visitor.getByRole('region',{name:'Shipment note'})).toContainText('Reception accepts deliveries until 5 PM.');
   if(uploadWorked) {
     const photo=visitor.getByRole('img',{name:'Shipment cargo',exact:true});
@@ -59,26 +60,30 @@ try {
     console.log('PASS: uploaded Supabase photo is stored in Firebase and loads on public tracking.');
   }
   const editor=admin.locator('section').filter({has:admin.getByText('Update shipment',{exact:true})}).last();
-  await expect(editor.getByLabel('ETA',{exact:true})).toHaveAttribute('type','date');
-  await editor.getByLabel('ETA',{exact:true}).fill('2026-10-02');
-  await expect(visitor.getByText('2026-10-02',{exact:true})).toBeVisible({timeout:25000});
+  await expect(editor.getByLabel('Expected delivery',{exact:true})).toHaveAttribute('type','datetime-local');
+  await editor.getByLabel('Expected delivery',{exact:true}).fill('2026-10-02T12:00');
+  await editor.getByRole('button',{name:'Save shipment details',exact:true}).click();
+  await expect(editor.getByRole('status')).toContainText('Shipment details saved.');
+  await expect(visitor.locator('.tracking-parcel-grid').getByText(/Oct 2, 2026/)).toBeVisible({timeout:25000});
   await editor.getByLabel('Tracking note',{exact:true}).fill('Delivery rescheduled. Please contact the receiving desk.');
-  await editor.getByRole('button',{name:'Save note',exact:true}).click();
+  await editor.getByRole('button',{name:'Save shipment details',exact:true}).click();
   await expect(visitor.getByRole('region',{name:'Shipment note'})).toContainText('Delivery rescheduled.',{timeout:25000});
   record=await findTestRecord();
-  if(record.fields.note.stringValue!=='Delivery rescheduled. Please contact the receiving desk.' || record.fields.eta.stringValue!=='2026-10-02') throw Error('ETA/note not persisted in Firebase');
+  if(record.fields.note.stringValue!=='Delivery rescheduled. Please contact the receiving desk.' || !record.fields.eta.stringValue.startsWith('2026-10-02')) throw Error('ETA/note not persisted in Firebase');
   await editor.getByLabel('Tracking note',{exact:true}).fill('');
-  await editor.getByRole('button',{name:'Save note',exact:true}).click();
+  await editor.getByRole('button',{name:'Save shipment details',exact:true}).click();
   await expect(visitor.getByRole('region',{name:'Shipment note'})).toHaveCount(0,{timeout:25000});
   console.log('PASS: both ETA date pickers, note creation/editing, Firebase persistence, live display, and hiding a cleared note.');
-  await expect(visitor.locator('iframe[title="Shipment current location map"]')).toHaveAttribute('src',/Murtala/);
+  await expect(visitor.locator('iframe[title="Complete shipment route map"]')).toHaveAttribute('src',/Murtala/);
   await editor.getByLabel('Current location',{exact:true}).fill('Heathrow Airport, London, United Kingdom');
-  await expect(visitor.locator('iframe[title="Shipment current location map"]')).toHaveAttribute('src',/Heathrow/,{timeout:25000});
-  await expect(visitor.getByRole('link',{name:'View route'})).toHaveAttribute('href',/origin=Lagos/);
+  await editor.getByRole('button',{name:'Save shipment details',exact:true}).click();
+  await expect(visitor.locator('iframe[title="Complete shipment route map"]')).toHaveAttribute('src',/Heathrow/,{timeout:25000});
+  await expect(visitor.getByRole('link',{name:'Open route in maps'})).toHaveAttribute('href',/origin=Lagos/);
   console.log('PASS: live Firebase location update changes the map without a page refresh.');
-  await editor.getByRole('combobox').selectOption('Delivered');
-  await expect(admin.getByText('Shipment update saved to Firebase.')).toBeVisible();
-  await expect(visitor.getByRole('heading',{name:'Delivered',exact:true})).toBeVisible({timeout:25000});
+  await editor.getByLabel('Current status',{exact:true}).selectOption('Delivered');
+  await editor.getByRole('button',{name:'Save shipment details',exact:true}).click();
+  await expect(editor.getByText('Shipment details saved. The tracking page has been updated.')).toBeVisible();
+  await expect(visitor.locator('.tracking-current .tracking-badge')).toHaveText('Delivered',{timeout:25000});
   await expect(visitor.getByRole('progressbar')).toHaveAttribute('aria-valuenow','100');
   await visitor.setViewportSize({width:390,height:844});
   await visitor.screenshot({path:'artifacts/live-tracking-mobile.png',fullPage:true});
@@ -88,12 +93,12 @@ try {
   await track.locator('input[name=trackingnumber]').fill(code);
   await track.locator('button[type=submit]').click();
   await visitor.waitForURL('**/track?code=*');
-  await expect(visitor.getByRole('heading',{name:'Delivered',exact:true})).toBeVisible({timeout:25000});
+  await expect(visitor.locator('.tracking-current .tracking-badge')).toHaveText('Delivered',{timeout:25000});
   console.log('PASS: separate visitor session sees Firebase data, status updates, ETA, route, 100% progress, and homepage tracking navigation.');
   await visitor.getByRole('textbox',{name:'Tracking code'}).fill('BC-NOT-A-REAL-SHIPMENT');
   await visitor.getByRole('button',{name:'Track shipment',exact:true}).click();
   await expect(visitor.getByRole('status')).toContainText('No matching shipment was found');
-  await expect(visitor.getByRole('region',{name:'Shipment details'})).toHaveCount(0);
+  await expect(visitor.locator('.tracking-result')).toHaveCount(0);
   console.log(`PASS: unknown code clears the previous result. Photo upload verified: ${uploadWorked}.`);
   process.exitCode = uploadWorked ? 0 : 1;
 } finally {

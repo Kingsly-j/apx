@@ -25,14 +25,15 @@ export default function ShipmentResult({shipment}:{shipment:Shipment}) {
   const current=statusLabel(shipment.status);
   const currentIndex=trackingMilestones.findIndex(status=>status===current);
   const history=[...(shipment.history ?? [])].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime());
+  const feeName=shipment.feeName?.trim() || "Clearance Fee";
   const fee=amount(shipment.clearanceFee,shipment.currency);
-  const support=`mailto:${encodeURIComponent(shipment.supportEmail || "support@bluecrestlogistics.com")}?subject=${encodeURIComponent(`Clearance fee enquiry - ${shipment.trackingCode}`)}&body=${encodeURIComponent(`Please help me arrange payment for shipment ${shipment.trackingCode}. Listed clearance fee: ${fee}.`)}`;
+  const support=`mailto:${encodeURIComponent(shipment.supportEmail || "support@bluecrestlogistics.com")}?subject=${encodeURIComponent(`${feeName} enquiry - ${shipment.trackingCode}`)}&body=${encodeURIComponent(`Please help me arrange payment for shipment ${shipment.trackingCode}. ${feeName}: ${fee}.`)}`;
   return <div className="tracking-result" aria-label="Shipment details">
     <section className="tracking-summary tracking-surface">
       <header className="tracking-summary-header"><div><h2><Icon name="box"/> Tracking Number</h2><div className="tracking-number"><strong>{shipment.trackingCode}</strong>{shipment.verified&&<span>Verified</span>}</div></div><div className="tracking-current"><div><Icon name="user"/> Current Status: <Badge status={shipment.status}/></div><p><Icon name="calendar-alt"/> Last Updated: {displayDate(shipment.updatedAt,true)}</p></div></header>
       <div className="tracking-info-grid">
         <Card title="Sender Information" icon="user"><Row icon="user" value={shipment.senderName}/><Row icon="map-marker-alt" value={shipment.senderAddress}/><Row icon="phone" value={shipment.senderPhone}/><Row icon="envelope" value={shipment.senderEmail}/></Card>
-        <Card title="Receiver Information" icon="user"><Row icon="user" value={shipment.customerName}/><Row icon="map-marker-alt" value={shipment.receiverAddress || shipment.destination}/><Row icon="phone" value={shipment.receiverPhone}/><Row icon="envelope" value={shipment.customerEmail}/></Card>
+        <Card title="Receiver Information" icon="user"><Row icon="user" label="Receiver name" value={shipment.customerName}/><Row icon="map-marker-alt" value={shipment.receiverAddress || shipment.destination}/><Row icon="phone" value={shipment.receiverPhone}/><Row icon="envelope" value={shipment.customerEmail}/></Card>
         <Card title="Shipment Details" icon="clipboard-list"><Row icon="weight-hanging" label="Weight" value={shipment.weight ? `${shipment.weight} kg`:undefined}/><Row icon="box" label="Type" value={shipment.shipmentType}/><Row icon="calendar-alt" label="Shipped" value={displayDate(shipment.shippedAt)}/><Row icon="cubes" label="Cargo" value={shipment.cargoDescription}/></Card>
         <Card title="Status Information" icon="chart-line"><Row icon="clock" label="Status" value={<Badge status={shipment.status}/>}/><Row icon="map-marker-alt" label="Location" value={shipment.location}/></Card>
       </div>
@@ -48,7 +49,7 @@ export default function ShipmentResult({shipment}:{shipment:Shipment}) {
       <img src={shipment.photoUrl} alt="Shipment cargo"/>
     </>:<div><Icon name="box-open"/><p>No parcel photo provided</p></div>}</div><div><dl className="tracking-parcel-grid">{[
       ['Duty Fees',amount(shipment.dutyFees,shipment.currency),'dollar-sign'],['Weight',shipment.weight?`${shipment.weight} kg`:'Not provided','weight-hanging'],['Pickup Date',displayDate(shipment.pickupAt,true),'calendar-alt'],['Expected Delivery',displayDate(shipment.eta,true),'truck'],['Delivery Mode',shipment.deliveryMode||'Not provided','shipping-fast'],['Tracking Status',<Badge key="status" status={shipment.status}/>,'chart-line'],
-    ].map(([title,value,icon])=><div key={String(title)}><dt><Icon name={String(icon)}/>{title}</dt><dd>{value}</dd></div>)}</dl><div className="tracking-actions"><button type="button" onClick={()=>window.print()}><Icon name="print"/>Print Receipt</button>{shipment.clearanceFee!==undefined&&shipment.clearanceFee!==''&&<div className="tracking-fee"><span>Clearance fee: <strong>{fee}</strong></span><a href={support}><Icon name="envelope"/>Contact support to pay</a></div>}</div></div></div></section>
+    ].map(([title,value,icon])=><div key={String(title)}><dt><Icon name={String(icon)}/>{title}</dt><dd>{value}</dd></div>)}</dl><div className="tracking-actions"><button type="button" onClick={()=>window.print()}><Icon name="print"/>Print Receipt</button>{shipment.clearanceFee!==undefined&&shipment.clearanceFee!==''&&<div className="tracking-fee"><a href={support} title="Contact support to arrange payment"><Icon name="dollar-sign"/>Pay {feeName} ({fee})</a><span className="hidden print:inline">{feeName}: {fee}</span></div>}</div></div></div></section>
     {shipment.note?.trim()&&<section className="tracking-surface tracking-note" aria-labelledby="tracking-note-heading"><h2 id="tracking-note-heading">Shipment note</h2><p>{shipment.note}</p></section>}
     <footer className="tracking-result-footer"><span>{shipment.origin} &rarr; {shipment.destination}</span><Link href="/contact">Need help? Contact support</Link></footer>
   </div>;

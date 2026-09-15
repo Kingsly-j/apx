@@ -213,7 +213,7 @@ export default function AdminPage() {
       const id = `bc-${crypto.randomUUID()}`;
       validateTrackingDetails(extraDetails);
       const trackingCode = extraDetails.trackingCode?.trim() || generateTrackingCode();
-      if ((await readShipments()).some(item => item.trackingCode.toLowerCase() === trackingCode.toLowerCase())) throw new Error("That tracking number is already in use.");
+      if (extraDetails.trackingCode?.trim() && (await readShipments()).some(item => item.trackingCode.toLowerCase() === trackingCode.toLowerCase())) throw new Error("That tracking number is already in use.");
       const photoData = createPhoto ? await uploadShipmentPhoto(createPhoto, id, trackingCode) : {};
       const shipment: Shipment = {
         ...extraDetails,
@@ -479,7 +479,7 @@ export default function AdminPage() {
             <h2 className="mt-3 text-3xl font-semibold text-blue-950">New cargo file</h2>
             <div className="mt-7 grid gap-4">
               {[
-                ["customerName", "Customer name", "e.g. Prime Imports Ltd"],
+                ["customerName", "Receiver name", "e.g. Prime Imports Ltd"],
                 ["customerEmail", "Customer email", "client@example.com"],
                 ["cargoDescription", "Cargo description", "e.g. 42 cartons of electronics"],
                 ["origin", "Departure location", "e.g. Shanghai warehouse"],
@@ -653,9 +653,9 @@ export default function AdminPage() {
                   finally { setIsSaving(false); }
                 }} className="mt-4 min-h-11 text-sm font-semibold text-red-700 disabled:opacity-50">Remove shipment photo</button> : null}
                 <ShipmentDetailsEditor key={selectedShipment.id} shipment={selectedShipment} onSave={async updates => {
-                  const code = updates.trackingCode?.trim();
+                  const code = (updates.trackingCode ?? selectedShipment.trackingCode).trim();
                   if (!code) throw new Error("Enter a tracking number.");
-                  if ((await readShipments()).some(item => item.id !== selectedShipment.id && item.trackingCode.toLowerCase() === code.toLowerCase())) throw new Error("That tracking number is already in use.");
+                  if (code.toLowerCase() !== selectedShipment.trackingCode.toLowerCase() && (await readShipments()).some(item => item.id !== selectedShipment.id && item.trackingCode.toLowerCase() === code.toLowerCase())) throw new Error("That tracking number is already in use.");
                   const next = await updateShipmentRecord(selectedShipment.id, {...updates, trackingCode: code}, shipments);
                   setShipments(next);
                   return next.find(item => item.id === selectedShipment.id)!;
