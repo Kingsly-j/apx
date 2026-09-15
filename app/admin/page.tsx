@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/app/language-provider";
 import { bootstrapPasswordHash } from "@/lib/admin-bootstrap";
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -97,6 +98,7 @@ function formatStorageError(bucket: string, action: string, error: unknown) {
 }
 
 export default function AdminPage() {
+  const { localize } = useLanguage();
   const [mobileSection, setMobileSection] = useState("overview");
 
   function navigateSection(section: string) {
@@ -365,7 +367,7 @@ export default function AdminPage() {
   }
 
   if (!isLoginVisible) {
-    return (
+    return localize(
       <div
         className="min-h-[72vh] bg-[#f5f8fc] outline-none"
         aria-label="Admin portal hidden"
@@ -384,7 +386,7 @@ export default function AdminPage() {
   }
 
   if (!isAuthenticated) {
-    return (
+    return localize(
       <div className="min-h-[72vh] bg-[#f5f8fc] px-4 py-16 sm:px-6">
         <form onSubmit={loginAdmin} className="mx-auto max-w-md rounded-[28px] border border-blue-100 bg-white p-6 shadow-xl shadow-blue-950/10 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">Admin login</p>
@@ -421,7 +423,7 @@ export default function AdminPage() {
     );
   }
 
-  return (
+  return localize(
     <div data-mobile-section={mobileSection} className="admin-dashboard relative bg-[#f5f8fc] pb-20 pt-4 sm:pb-24 lg:pt-10">
       <nav aria-label="Dashboard sections" className="sticky top-0 z-40 mx-4 mb-5 rounded-2xl border border-blue-100 bg-white/95 p-3 shadow-lg backdrop-blur lg:hidden">
         <label htmlFor="dashboard-section" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-600">Admin dashboard</label>

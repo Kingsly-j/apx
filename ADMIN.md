@@ -31,3 +31,11 @@ Route stops accept a label, marker type, latitude, and longitude, in travel orde
 The admin sets **Fee name** and **Fee amount** under **Parcel details & fees**. The button displays them directly, for example **Pay Storage Fee ($500.00)**, and opens a support email including the tracking number, fee name, and price. Existing shipments without a fee name retain **Clearance Fee** as the label. Payment support email can be set per shipment; it defaults to the site's existing support address. **Print Receipt** prints the shipment information with navigation and action buttons hidden.
 
 Verification: `node scripts/check-shipment-history.mjs` checks automatic activity history, no-op / failed saves, and concurrent history preservation. With the local app running, `node --env-file=.env scripts/check-tracking-details.mjs` creates and removes a temporary Firebase shipment to verify editor persistence, live tracking, map markers, mobile layout, and printing. Third-party map tiles are mocked in that browser check.
+
+## WhatsApp and language controls
+
+Payment buttons and the floating WhatsApp button open `https://wa.me/19152019157` for **+1 (915) 201-9157**. Payment messages include the tracking number, editable fee name and amount, sender / receiver details, cargo, route, status, and delivery estimate. Opening the link prepares a message; the visitor sends it in WhatsApp. A shipment's old payment-support email does not override this destination.
+
+The floating language icon offers English, French, Spanish, and Arabic. Interface translations are bundled locally, the choice is remembered in browser storage, and Arabic uses right-to-left layout. Customer-entered names and shipment notes remain as entered. The translation dictionary is `lib/languages.ts`; public page text is localized in `app/reference-page.tsx` and React interfaces through `app/language-provider.tsx`.
+
+Run `node scripts/check-language-whatsapp.mjs` with the local server running to check payment message contents, the floating buttons, language persistence, and Arabic mobile layout without cloud writes or sending WhatsApp messages.

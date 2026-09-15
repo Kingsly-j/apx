@@ -228,3 +228,36 @@ a:focus-visible, button:focus-visible { outline: 3px solid #60a5fa; outline-offs
  .tracking-parcel { grid-template-columns:150px 1fr; }
  .tracking-parcel-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
+.floating-tools { position:fixed; inset-inline-end:20px; bottom:calc(20px + env(safe-area-inset-bottom)); z-index:70; display:flex; flex-direction:column; align-items:center; gap:12px; }
+.floating-whatsapp { display:grid; place-items:center; width:58px; height:58px; border-radius:50%; background:#20bd5a; color:white; font-size:34px; box-shadow:0 5px 20px #14233735; transition:transform .15s,background .15s; }
+.floating-whatsapp:hover { background:#139746; transform:translateY(-2px); }
+.floating-language { display:flex; align-items:center; gap:6px; min-height:46px; padding:10px 12px; border:1px solid #dae4ef; border-radius:25px; background:white; color:#163e70; box-shadow:0 4px 15px #14233720; font-size:12px; font-weight:700; }
+.floating-language i { font-size:23px; }
+.language-popover { position:absolute; bottom:130px; inset-inline-end:0; width:210px; padding:10px; border:1px solid #dce5ee; border-radius:16px; background:white; box-shadow:0 10px 35px #14233730; color:#17324d; }
+.language-popover-heading { display:flex; align-items:center; justify-content:space-between; padding:0 8px 5px; }
+.language-popover-heading button { min-width:40px; min-height:40px; font-size:24px; }
+.language-popover > button { display:flex; align-items:center; justify-content:space-between; min-height:45px; width:100%; border-radius:9px; padding:10px 12px; text-align:start; }
+.language-popover > button:hover, .language-popover > button[aria-pressed=true] { background:#edf4ff; color:#215dda; }
+.floating-tools :focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+.tracking-fee a { max-width:100%; overflow-wrap:anywhere; text-align:center; }
+html[dir=rtl] .tracking-info-row, html[dir=rtl] .tracking-info-card, html[dir=rtl] .tracking-parcel-grid, html[dir=rtl] .tracking-note { text-align:right; }
+html[dir=rtl] .tracking-current { text-align:left; }
+html[dir=rtl] .tracking-section-title small { margin-left:0; margin-right:auto; }
+html[dir=rtl] .tracking-history li { border-left:0; border-right:2px solid #e5e7eb; margin-left:0; margin-right:17px; padding-left:0; padding-right:53px; }
+html[dir=rtl] .history-dot { left:auto; right:-21px; }
+html[dir=rtl] .tracking-history li:last-child { border-right-color:transparent; }
+html[dir=rtl] .tracking-milestones li:first-child:before { left:0; }
+html[dir=rtl] .tracking-milestones li:last-child:before { left:50%; }
+@media(max-width:700px) {
+ .floating-tools { inset-inline-end:14px; bottom:calc(14px + env(safe-area-inset-bottom)); }
+ .floating-whatsapp { width:52px; height:52px; font-size:30px; }
+ .shipment-tracking-page { padding-bottom:150px; }
+ html[dir=rtl] .tracking-current { text-align:right; }
+ html[dir=rtl] .tracking-milestones li { text-align:right; }
+ html[dir=rtl] .tracking-milestones li:before,html[dir=rtl] .tracking-milestones li:first-child:before,html[dir=rtl] .tracking-milestones li:last-child:before { left:auto; right:28px; }
+ html[dir=rtl] .tracking-section-title small { margin-right:0; }
+ html[dir=rtl] .tracking-history li { padding-right:34px; }
+}
+@media print { .floating-tools { display:none!important; } }
+html[dir=rtl] .text-left { text-align:right; }
+@media(max-width:700px) { .admin-dashboard { padding-bottom:170px; } }

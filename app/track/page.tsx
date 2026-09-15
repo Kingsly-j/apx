@@ -1,11 +1,14 @@
 "use client";
 
+import { useLanguage } from "@/app/language-provider";
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import ShipmentResult from "./shipment-result";
 import { findShipment, readShipments, watchShipment, type Shipment } from "@/lib/shipments";
 
 export default function TrackPage() {
+  const { localize } = useLanguage();
+
   const [code, setCode] = useState("");
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [searched, setSearched] = useState(false);
@@ -45,10 +48,10 @@ export default function TrackPage() {
     finally { setLoading(false); }
   }
 
-  return <main className="shipment-tracking-page">
+  return localize(<main className="shipment-tracking-page">
     <header className="tracking-page-header"><div><h1><i className="fas fa-box" aria-hidden="true"/> Shipment Tracking</h1><p><Link href="/">Home</Link><span>/</span>Tracking</p></div><Link href="/" className="tracking-home-link">Back to Home</Link></header>
     <form onSubmit={track} className="tracking-search"><label><span className="sr-only">Tracking code</span><input required value={code} onChange={event=>setCode(event.target.value)} placeholder="Enter your tracking number" /></label><button disabled={loading}>{loading ? "Checking..." : "Track shipment"}</button></form>
     <p role="status" className="tracking-search-message">{error || (searched && !shipment && !loading ? "No matching shipment was found. Check your code or contact support." : "")}</p>
     {shipment && <ShipmentResult shipment={shipment}/>}
-  </main>;
+  </main>);
 }

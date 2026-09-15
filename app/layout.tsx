@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import AdminAccess from "./admin-access";
+import { LanguageProvider } from "./language-provider";
+import FloatingTools from "./floating-tools";
 import "./globals.css";
 
 const inter = localFont({
@@ -21,7 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><AdminAccess />{children}</body>
+      <body className="min-h-full flex flex-col"><LanguageProvider><AdminAccess />{children}<FloatingTools /></LanguageProvider></body>
     </html>
   );
 }

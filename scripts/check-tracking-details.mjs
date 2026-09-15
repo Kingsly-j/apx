@@ -43,7 +43,7 @@ try {
   await expect(visitor.getByText('No shipment history has been recorded yet.')).toBeVisible();
   console.log('PASS legacy shipment renders with missing-field placeholders');
   for(const summary of ['Sender information','Receiver contact','Parcel details & fees','Progress milestone dates','Shipment history (0)','Complete shipment route (0 stops)'])await editor.locator('summary').filter({hasText:summary}).click();
-  for(const [label,value] of Object.entries({'Receiver name':'Updated receiver','Receiver email':'updated@example.com','Sender name':'Test sender','Sender address':'Dubai warehouse','Sender phone':'+10000000000','Sender email':'sender@example.com','Receiver address':'London receiving address','Receiver phone':'+20000000000','Weight (kg)':'12.5','Shipment type':'Parcel','Delivery mode':'Air freight','Duty fees':'80','Fee name':'Storage Fee','Fee amount':'500','Currency (e.g. USD)':'USD','Estimated distance':'5,900 km','Payment support email':'payments@example.com','Tracking note':'Please call before delivery.'}))await editor.getByLabel(label,{exact:true}).fill(value);
+  for(const [label,value] of Object.entries({'Receiver name':'Updated receiver','Receiver email':'updated@example.com','Sender name':'Test sender','Sender address':'Dubai warehouse','Sender phone':'+10000000000','Sender email':'sender@example.com','Receiver address':'London receiving address','Receiver phone':'+20000000000','Weight (kg)':'12.5','Shipment type':'Parcel','Delivery mode':'Air freight','Duty fees':'80','Fee name':'Storage Fee','Fee amount':'500','Currency (e.g. USD)':'USD','Estimated distance':'5,900 km','Tracking note':'Please call before delivery.'}))await editor.getByLabel(label,{exact:true}).fill(value);
   await editor.getByLabel('Current status',{exact:true}).selectOption('On The Way');
   await editor.getByLabel('Show verified badge').check();
   for(const label of ['Shipped date','Pickup date','Order Confirmed date','Picked by Courier date','On The Way date'])await editor.getByLabel(label,{exact:true}).fill('2026-09-15T10:00');
@@ -57,12 +57,12 @@ try {
   await editor.getByRole('button',{name:'Save shipment details',exact:true}).click();
   await expect(editor.getByRole('status')).toContainText('Shipment details saved.');
   const record=await readRecord();
-  for(const key of ['senderName','senderAddress','senderPhone','senderEmail','receiverAddress','receiverPhone','weight','shipmentType','deliveryMode','shippedAt','pickupAt','dutyFees','feeName','clearanceFee','currency','estimatedDistance','supportEmail','milestoneDates','history','routeStops'])if(!record[key])throw Error(`Missing persisted field: ${key}`);
+  for(const key of ['senderName','senderAddress','senderPhone','senderEmail','receiverAddress','receiverPhone','weight','shipmentType','deliveryMode','shippedAt','pickupAt','dutyFees','feeName','clearanceFee','currency','estimatedDistance','milestoneDates','history','routeStops'])if(!record[key])throw Error(`Missing persisted field: ${key}`);
   if(record.routeStops.length!==3||record.history.length!==2||record.verified!==true||record.status!=='On The Way')throw Error('Saved values differ from editor');
   await expect(visitor.getByText('Test sender',{exact:true})).toBeVisible();
   await expect(visitor.getByText('Parcel reached the Rome transfer hub.',{exact:true})).toBeVisible();
   await expect(visitor.getByRole('img',{name:'Shipment route: Dubai to Rome to London',exact:true})).toBeVisible();
-  await expect(visitor.getByRole('link',{name:'Pay Storage Fee ($500.00)' })).toHaveAttribute('href',/mailto:payments%40example.com/);
+  await expect(visitor.getByRole('link',{name:'Pay Storage Fee ($500.00)' })).toHaveAttribute('href',/https:\/\/wa.me\/19152019157/);
   await expect(visitor.getByRole('link',{name:'Pay Storage Fee ($500.00)',exact:true})).toBeVisible();
   if(!record.history.some(event=>event.source==='automatic' && event.description.includes('Status updated to On The Way.')))throw Error('Automatic status history missing');
   console.log('PASS automatic admin activity history');
