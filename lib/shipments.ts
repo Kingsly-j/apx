@@ -1,17 +1,29 @@
 import { collection, deleteDoc, doc, getDocsFromServer, onSnapshot, orderBy, query, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/utils/firebase/client";
 
-export type ShipmentStatus = "Booked" | "In transit" | "Customs" | "Delivered";
+export type ShipmentStatus = "Booked" | "In transit" | "Customs" | "Delivered" | "Order Confirmed" | "Picked by Courier" | "On The Way" | "Custom Hold";
+export type ShipmentEvent = { id: string; date: string; status: ShipmentStatus; location: string; description: string };
+export type RouteStop = { id: string; label: string; latitude: number; longitude: number; kind: "origin" | "stop" | "current" | "destination" };
 export type Shipment = {
   id: string; trackingCode: string; customerName: string; customerEmail: string;
   cargoDescription: string; origin: string; destination: string; location: string;
   status: ShipmentStatus; eta: string; progress: number; photoUrl?: string; photoPath?: string;
   createdBy: string; createdByRole?: "Super admin" | "Admin"; createdAt: string; updatedAt: string;
   note?: string;
+  senderName?: string; senderAddress?: string; senderPhone?: string; senderEmail?: string;
+  receiverAddress?: string; receiverPhone?: string;
+  weight?: string; shipmentType?: string; shippedAt?: string; pickupAt?: string; deliveryMode?: string;
+  dutyFees?: string; clearanceFee?: string; currency?: string; verified?: boolean; estimatedDistance?: string; supportEmail?: string;
+  history?: ShipmentEvent[]; routeStops?: RouteStop[];
+  milestoneDates?: Record<string, string>;
 };
 
 export const SHIPMENTS_COLLECTION = "shipments";
-export const shipmentStatuses: ShipmentStatus[] = ["Booked", "In transit", "Customs", "Delivered"];
+export const shipmentStatuses: ShipmentStatus[] = ["Order Confirmed", "Picked by Courier", "On The Way", "Custom Hold", "Delivered", "Booked", "In transit", "Customs"];
+export const trackingMilestones = ["Order Confirmed", "Picked by Courier", "On The Way", "Custom Hold", "Delivered"] as const;
+export function statusLabel(status: ShipmentStatus) {
+  return ({ Booked: "Order Confirmed", "In transit": "On The Way", Customs: "Custom Hold" } as Partial<Record<ShipmentStatus, string>>)[status] ?? status;
+}
 // Kept for existing UI messages. A successful operation now always means Firestore acknowledged it.
 export function shipmentStorageNotice() { return ""; }
 
@@ -36,7 +48,7 @@ export function generateTrackingCode() {
   return `BC-${new Date().getFullYear()}-${crypto.randomUUID().replaceAll("-", "").slice(0,12).toUpperCase()}`;
 }
 export function progressForStatus(status: ShipmentStatus) {
-  return { Booked: 18, "In transit": 55, Customs: 78, Delivered: 100 }[status];
+  return { Booked: 18, "Order Confirmed": 18, "Picked by Courier": 35, "In transit": 55, "On The Way": 55, Customs: 78, "Custom Hold": 78, Delivered: 100 }[status];
 }
 export async function readShipments() {
   const snapshot = await cloudOperation(getDocsFromServer(query(collection(db, SHIPMENTS_COLLECTION), orderBy("createdAt", "desc"))));
@@ -53,7 +65,7 @@ export async function saveShipment(shipment: Shipment, currentShipments: Shipmen
   return [shipment, ...currentShipments.filter(item => item.id !== shipment.id)];
 }
 export async function updateShipmentRecord(id: string, updates: Partial<Shipment>, currentShipments: Shipment[]) {
-  const patch = { ...updates, updatedAt: new Date().toISOString(), ...(updates.status ? { progress: progressForStatus(updates.status) } : {}) };
+  const patch = { ...updates, updatedAt: updates.updatedAt || new Date().toISOString(), ...(updates.status ? { progress: progressForStatus(updates.status) } : {}) };
   await cloudOperation(updateDoc(doc(db, SHIPMENTS_COLLECTION, id), patch));
   return currentShipments.map(item => item.id === id ? { ...item, ...patch } : item);
 }

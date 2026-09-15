@@ -16,7 +16,7 @@ import {
   updateShipmentRecord,
 } from "@/lib/shipments";
 import { createClient } from "@/utils/supabase/client";
-import ShipmentNoteEditor from "./shipment-note-editor";
+import ShipmentDetailsEditor, { ShipmentFields, validateTrackingDetails } from "./shipment-details-editor";
 
 async function hashPassword(password: string) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
@@ -106,6 +106,7 @@ export default function AdminPage() {
 
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [extraDetails, setExtraDetails] = useState<Partial<Shipment>>({});
   const [selectedId, setSelectedId] = useState("");
   const [createPhoto, setCreatePhoto] = useState<File | null>(null);
   const [replacementPhoto, setReplacementPhoto] = useState<File | null>(null);
@@ -210,9 +211,12 @@ export default function AdminPage() {
       const now = new Date().toISOString();
       const status = form.status;
       const id = `bc-${crypto.randomUUID()}`;
-      const trackingCode = generateTrackingCode();
+      validateTrackingDetails(extraDetails);
+      const trackingCode = extraDetails.trackingCode?.trim() || generateTrackingCode();
+      if ((await readShipments()).some(item => item.trackingCode.toLowerCase() === trackingCode.toLowerCase())) throw new Error("That tracking number is already in use.");
       const photoData = createPhoto ? await uploadShipmentPhoto(createPhoto, id, trackingCode) : {};
       const shipment: Shipment = {
+        ...extraDetails,
         id,
         trackingCode,
         customerName: form.customerName.trim() || "Bluecrest Logistics Client",
@@ -222,7 +226,7 @@ export default function AdminPage() {
         destination: form.destination.trim() || "Client receiving point",
         location: form.location.trim() || form.origin.trim() || "Awaiting pickup",
         status,
-        eta: form.eta || "Pending schedule",
+        eta: form.eta ? new Date(form.eta).toISOString() : "Pending schedule",
         note: form.note.trim(),
         progress: progressForStatus(status),
         ...photoData,
@@ -236,27 +240,14 @@ export default function AdminPage() {
       setShipments(nextShipments);
       setSelectedId(shipment.id);
       setForm(emptyForm);
+      setExtraDetails({});
+      navigateSection("details");
       setCreatePhoto(null);
       setAdminMessage(`Shipment created. Tracking code: ${shipment.trackingCode}. ${shipmentStorageNotice()}`);
     } catch (error) {
       setAdminMessage(error instanceof Error ? error.message : "Unable to create shipment.");
     } finally {
       setIsSaving(false);
-    }
-  }
-
-  async function updateShipment(id: string, updates: Partial<Shipment>) {
-    const previous = shipments.find(item => item.id === id);
-    setShipments(current => current.map(item => item.id === id ? { ...item, ...updates } : item));
-    try {
-      await updateShipmentRecord(id, updates, shipments);
-      setShipments(current => current.map(item => item.id === id ? {
-        ...item, progress: progressForStatus(item.status), updatedAt: new Date().toISOString(),
-      } : item));
-      setAdminMessage("Shipment update saved to Firebase.");
-    } catch (error) {
-      if (previous) setShipments(current => current.map(item => item.id === id ? previous : item));
-      setAdminMessage(error instanceof Error ? error.message : "Unable to save the shipment update.");
     }
   }
 
@@ -499,7 +490,7 @@ export default function AdminPage() {
                 <label key={name} className="grid gap-2">
                   <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-950/55">{label}</span>
                   <input
-                    type={name === "eta" ? "date" : name === "customerEmail" ? "email" : "text"}
+                    type={name === "eta" ? "datetime-local" : name === "customerEmail" ? "email" : "text"}
                     value={form[name as keyof typeof form]}
                     onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))}
                     placeholder={placeholder}
@@ -536,6 +527,7 @@ export default function AdminPage() {
                 <textarea aria-label="Tracking note (optional)" rows={4} maxLength={2000} value={form.note} onChange={event => setForm(current => ({ ...current, note: event.target.value }))} placeholder="Add a message for the customer, if needed." className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none focus:border-blue-500 focus:bg-white" />
                 <span className="text-xs text-slate-500">Shown on the tracking page only when provided.</span>
               </label>
+              <details className="rounded-xl border border-blue-100 bg-blue-50 p-4"><summary className="cursor-pointer font-semibold text-blue-950">Full tracking details (optional)</summary><div className="mt-4"><label className="mb-4 grid gap-2 text-sm text-blue-950">Custom tracking number<input value={extraDetails.trackingCode ?? ""} onChange={event=>setExtraDetails(current=>({...current,trackingCode:event.target.value}))} placeholder="Leave empty to generate automatically" className="w-full rounded-xl border border-blue-200 bg-white p-3" /></label><ShipmentFields extendedOnly value={extraDetails} onChange={setExtraDetails}/></div></details>
               {adminMessage ? <p className="hidden rounded-2xl bg-blue-50 p-4 text-sm text-blue-700 lg:block">{adminMessage}</p> : null}
               <button disabled={isSaving} className="mt-2 rounded-full bg-blue-600 px-6 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300">
                 {isSaving ? "Saving..." : "Create and generate code"}
@@ -608,7 +600,7 @@ export default function AdminPage() {
             {!selectedShipment ? <section data-dashboard-panel="details" className="rounded-2xl bg-white p-6 text-blue-950 lg:hidden"><p>Select a shipment from records to update it.</p><button type="button" onClick={() => navigateSection("records")} className="mt-4 min-h-11 rounded-full bg-blue-600 px-5 text-sm font-semibold text-white">View records</button></section> : null}
             {selectedShipment ? (
               <section data-dashboard-panel="details" className="rounded-[28px] border border-blue-100 bg-white p-5 shadow-xl shadow-blue-950/10 sm:p-8">
-                <button type="button" onClick={() => navigateSection("records")} className="mb-4 min-h-11 rounded-full bg-blue-50 px-4 text-sm font-semibold text-blue-700 lg:hidden">? Back to records</button>
+                <button type="button" onClick={() => navigateSection("records")} className="mb-4 min-h-11 rounded-full bg-blue-50 px-4 text-sm font-semibold text-blue-700 lg:hidden">Back to records</button>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Update shipment</p>
                 <div className="mt-4 rounded-[22px] bg-blue-50 p-5">
                   <p className="text-sm font-semibold text-blue-950">Bluecrest tracking code</p>
@@ -653,60 +645,21 @@ export default function AdminPage() {
                       {isSaving ? "Uploading..." : "Upload and replace photo"}
                     </button>
                   </label>
-                  <label className="grid gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-950/55">Current location</span>
-                    <input
-                      value={selectedShipment.location}
-                      onChange={(event) => updateShipment(selectedShipment.id, { location: event.target.value })}
-                      className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none transition focus:border-blue-500 focus:bg-white"
-                    />
-                  </label>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-950/55">Departure location</span>
-                      <input
-                        value={selectedShipment.origin}
-                        onChange={(event) => updateShipment(selectedShipment.id, { origin: event.target.value })}
-                        className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none transition focus:border-blue-500 focus:bg-white"
-                      />
-                    </label>
-                    <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-950/55">Destination</span>
-                      <input
-                        value={selectedShipment.destination}
-                        onChange={(event) => updateShipment(selectedShipment.id, { destination: event.target.value })}
-                        className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none transition focus:border-blue-500 focus:bg-white"
-                      />
-                    </label>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-950/55">Status</span>
-                      <select
-                        value={selectedShipment.status}
-                        onChange={(event) => updateShipment(selectedShipment.id, { status: event.target.value as ShipmentStatus })}
-                        className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none transition focus:border-blue-500 focus:bg-white"
-                      >
-                        {shipmentStatuses.map((status) => (
-                          <option key={status}>{status}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="grid gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-950/55">ETA</span>
-                      <input
-                        type="date"
-                        value={/^\d{4}-\d{2}-\d{2}$/.test(selectedShipment.eta) ? selectedShipment.eta : ""}
-                        onChange={(event) => updateShipment(selectedShipment.id, { eta: event.target.value || "Pending schedule" })}
-                        className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-blue-950 outline-none transition focus:border-blue-500 focus:bg-white"
-                      />
-                    </label>
-                  </div>
                 </div>
-                <div className="mt-6"><ShipmentNoteEditor key={selectedShipment.id} note={selectedShipment.note} onSave={async note => {
-                  await updateShipmentRecord(selectedShipment.id, { note }, shipments);
-                  setShipments(current => current.map(item => item.id === selectedShipment.id ? { ...item, note, updatedAt: new Date().toISOString() } : item));
-                }} /></div>
+                {selectedShipment.photoUrl ? <button type="button" disabled={isSaving} onClick={async () => {
+                  setIsSaving(true);
+                  try { setShipments(await updateShipmentRecord(selectedShipment.id, {photoUrl:"",photoPath:""}, shipments)); setAdminMessage("Shipment photo removed from tracking."); }
+                  catch(error) { setAdminMessage(error instanceof Error ? error.message : "Unable to remove the photo."); }
+                  finally { setIsSaving(false); }
+                }} className="mt-4 min-h-11 text-sm font-semibold text-red-700 disabled:opacity-50">Remove shipment photo</button> : null}
+                <ShipmentDetailsEditor key={selectedShipment.id} shipment={selectedShipment} onSave={async updates => {
+                  const code = updates.trackingCode?.trim();
+                  if (!code) throw new Error("Enter a tracking number.");
+                  if ((await readShipments()).some(item => item.id !== selectedShipment.id && item.trackingCode.toLowerCase() === code.toLowerCase())) throw new Error("That tracking number is already in use.");
+                  const next = await updateShipmentRecord(selectedShipment.id, {...updates, trackingCode: code}, shipments);
+                  setShipments(next);
+                  return next.find(item => item.id === selectedShipment.id)!;
+                }} />
               </section>
             ) : null}
 
