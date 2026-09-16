@@ -34,9 +34,16 @@ try {
   await page.reload();await expect(page.locator('html')).toHaveAttribute('lang','ar');
   await page.locator('.floating-language').click();await page.getByRole('button',{name:'English',exact:true}).click();
   await expect(page.locator('html')).toHaveAttribute('dir','ltr');
+  for(const [name,heading] of [['Deutsch','Sendungsverfolgung'],['Portugu\u00eas','Rastreamento de envio'],['\u7b80\u4f53\u4e2d\u6587','\u8d27\u4ef6\u8ffd\u8e2a']]) {
+    await page.locator('.floating-language').click();
+    await page.getByRole('button',{name,exact:true}).click();
+    await expect(page.getByRole('heading',{name:heading,exact:true})).toBeVisible();
+  }
+  if(await page.evaluate(()=>getComputedStyle(document.documentElement).fontSize)!=='14px')throw Error('Site font size was not reduced');
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Language selector causes mobile overflow');
   await page.goto('http://localhost:3000/admin?admin=1');
   await page.locator('.floating-language').click();await page.getByRole('button',{name:'Français',exact:true}).click();
   await expect(page.getByRole('button',{name:'Connexion',exact:true})).toBeVisible();
   if(errors.length)throw Error(errors.join('\n'));
-  console.log('PASS floating WhatsApp, four languages, persistence, public/admin labels, and Arabic mobile direction');
+  console.log('PASS floating WhatsApp, seven languages, persistence, public/admin labels, and Arabic mobile direction');
 } finally {await browser.close();}

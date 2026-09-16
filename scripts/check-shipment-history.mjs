@@ -47,3 +47,14 @@ assert.match(record.history.at(-1).description,/Shipment photo updated/);
 await exports.updateShipmentRecord(fixture.id,{feeName:'Storage Fee',clearanceFee:'500'},[record]);
 assert.match(record.history.at(-1).description,/Fee name, Fee amount updated/);
 console.log('PASS creation, status/receiver/location/photo activity, milestone dates, no-op saves, failed writes, and concurrent history preservation');
+
+const progressExports={};
+const progressSource=ts.transpileModule(await readFile('lib/shipment-progress.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+vm.runInNewContext(progressSource,{exports:progressExports,require:()=>exports});
+const progressFixture={...fixture,status:'On The Way',milestoneDates:{'On The Way':'2026-09-16T10:00:00Z'}};
+for(const stage of ['Order Confirmed','Picked by Courier','On The Way'])assert.equal(progressExports.shipmentMilestoneDate(progressFixture,stage),'2026-09-16T10:00:00Z');
+assert.equal(progressExports.shipmentMilestoneDate(progressFixture,'Delivered'),undefined);
+assert.equal(progressExports.shipmentMilestoneDate({...progressFixture,milestoneDates:{...progressFixture.milestoneDates,'Order Confirmed':'2026-09-14T10:00:00Z'}},'Order Confirmed'),'2026-09-14T10:00:00Z');
+assert.equal(progressExports.shipmentMilestoneDate({...progressFixture,status:'In transit'},'Picked by Courier'),'2026-09-16T10:00:00Z');
+assert.equal(progressExports.shipmentMilestoneDate({...progressFixture,milestoneDates:{}},'Order Confirmed'),fixture.updatedAt);
+console.log('PASS selected-stage date fills earlier undated stages, preserves recorded dates, and leaves future stages pending');

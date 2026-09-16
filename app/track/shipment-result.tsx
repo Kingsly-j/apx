@@ -2,10 +2,11 @@
 
 import { useLanguage } from "@/app/language-provider";
 import Link from "next/link";
-import { shipmentPaymentLink } from "@/lib/whatsapp";
+import { shipmentPaymentLink, shipmentPaymentEmailLink } from "@/lib/whatsapp";
 import type { ReactNode } from "react";
 import { statusLabel, trackingMilestones, type Shipment, type ShipmentStatus } from "@/lib/shipments";
 import ShipmentRoute from "./shipment-route";
+import { shipmentMilestoneDate } from "@/lib/shipment-progress";
 
 function Icon({name}:{name:string}) {
   const { localize } = useLanguage();
@@ -51,9 +52,9 @@ export default function ShipmentResult({shipment}:{shipment:Shipment}) {
       </div>
     </section>
     <section className="tracking-surface"><h2 className="tracking-section-title">Shipment Progress</h2><ol className="tracking-milestones" aria-label="Shipment progress">{trackingMilestones.map((status,index)=>{
-      const date=shipment.milestoneDates?.[status] ?? history.find(event=>statusLabel(event.status)===status)?.date;
+      const date=shipmentMilestoneDate(shipment,status);
       const reached=index<=currentIndex;
-      return localize(<li key={status} className={`${reached?'reached':''} ${status==='Custom Hold'?'hold':status==='Delivered'?'delivered':''}`} aria-current={status===current?'step':undefined}><span className="milestone-icon"><Icon name={['check-circle','box','truck','pause-circle','check-double'][index]}/></span><strong>{status}</strong><time>{displayDate(date,false,locale)}</time></li>);
+      return localize(<li key={status} className={`${reached?'reached':''} ${status==='Custom Hold'?'hold':status==='Delivered'?'delivered':''}`} aria-current={status===current?'step':undefined}><span className="milestone-icon"><Icon name={['check-circle','box','truck','pause-circle','check-double'][index]}/></span><strong>{status}</strong><time>{date ? displayDate(date,false,locale) : "Pending"}</time></li>);
     })}</ol><div className="sr-only" role="progressbar" aria-label="Shipment completion" aria-valuenow={shipment.progress} aria-valuemin={0} aria-valuemax={100}/></section>
     <div className="tracking-route-grid"><section className="tracking-surface"><h2 className="tracking-section-title"><Icon name="calendar-alt"/>Shipment History</h2><ol className="tracking-history">{history.map(event=><li key={event.id}><span className={`history-dot ${statusLabel(event.status)==='Custom Hold'?'hold':statusLabel(event.status)==='Delivered'?'delivered':''}`}><Icon name="info-circle"/></span><time>{displayDate(event.date,true,locale)}</time><div className="my-2"><Badge status={event.status}/></div><p translate="no">{event.description}</p>{event.location&&<small><Icon name="map-marker-alt"/> {event.location}</small>}</li>)}</ol>{!history.length&&<p className="p-6 text-slate-500">No shipment history has been recorded yet.</p>}</section><section className="tracking-surface"><h2 className="tracking-section-title"><Icon name="map-marker-alt"/>Complete Shipment Route <small>Fixed map view</small></h2><ShipmentRoute key={JSON.stringify(shipment.routeStops)} shipment={shipment}/></section></div>
     <section className="tracking-surface"><h2 className="tracking-section-title"><Icon name="th"/>Parcel Information</h2><div className="tracking-parcel"><div className="tracking-photo">{shipment.photoUrl ? <>
@@ -61,7 +62,7 @@ export default function ShipmentResult({shipment}:{shipment:Shipment}) {
       <img src={shipment.photoUrl} alt="Shipment cargo"/>
     </>:<div><Icon name="box-open"/><p>No parcel photo provided</p></div>}</div><div><dl className="tracking-parcel-grid">{[
       ['Duty Fees',amount(shipment.dutyFees,shipment.currency),'dollar-sign'],['Weight',shipment.weight?`${shipment.weight} kg`:'Not provided','weight-hanging'],['Pickup Date',displayDate(shipment.pickupAt,true,locale),'calendar-alt'],['Expected Delivery',displayDate(shipment.eta,true,locale),'truck'],['Delivery Mode',shipment.deliveryMode||'Not provided','shipping-fast'],['Tracking Status',<Badge key="status" status={shipment.status}/>,'chart-line'],
-    ].map(([title,value,icon])=><div key={String(title)}><dt><Icon name={String(icon)}/>{title}</dt><dd>{value}</dd></div>)}</dl><div className="tracking-actions"><button type="button" onClick={()=>window.print()}><Icon name="print"/>Print Receipt</button>{shipment.clearanceFee!==undefined&&shipment.clearanceFee!==''&&<div className="tracking-fee"><a href={support} target="_blank" rel="noopener noreferrer" title="Arrange payment on WhatsApp"><Icon name="dollar-sign"/>Pay {feeName} ({fee})</a><span className="hidden print:inline">{feeName}: {fee}</span></div>}</div></div></div></section>
+    ].map(([title,value,icon])=><div key={String(title)}><dt><Icon name={String(icon)}/>{title}</dt><dd>{value}</dd></div>)}</dl><div className="tracking-actions"><button type="button" onClick={()=>window.print()}><Icon name="print"/>Print Receipt</button>{shipment.clearanceFee!==undefined&&shipment.clearanceFee!==''&&<div className="tracking-fee"><details className="payment-choice"><summary><Icon name="dollar-sign"/>Pay {feeName} ({fee})</summary><div className="payment-options"><p>Send payment details via</p><a href={support} target="_blank" rel="noopener noreferrer"><Icon name="comment"/>WhatsApp</a><a href={shipmentPaymentEmailLink(shipment,feeName,fee)}><Icon name="envelope"/>Email</a></div></details><span className="hidden print:inline">{feeName}: {fee}</span></div>}</div></div></div></section>
     {shipment.note?.trim()&&<section className="tracking-surface tracking-note" aria-labelledby="tracking-note-heading"><h2 id="tracking-note-heading">Shipment note</h2><p translate="no">{shipment.note}</p></section>}
     <footer className="tracking-result-footer"><span>{shipment.origin} &rarr; {shipment.destination}</span><Link href="/contact">Need help? Contact support</Link></footer>
   </div>);

@@ -8,8 +8,17 @@ export function whatsappLink(message = "Hello, I need help with my shipment.") {
 }
 
 export function shipmentPaymentLink(shipment: Shipment, feeName: string, formattedAmount: string) {
+  return whatsappLink(shipmentPaymentMessage(shipment, feeName, formattedAmount));
+}
+
+export function shipmentPaymentEmailLink(shipment: Shipment, feeName: string, formattedAmount: string) {
+  const subject = `Payment for ${feeName} - ${shipment.trackingCode}`;
+  return `mailto:support@bluecrestlogistics.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shipmentPaymentMessage(shipment, feeName, formattedAmount))}`;
+}
+
+function shipmentPaymentMessage(shipment: Shipment, feeName: string, formattedAmount: string) {
   const value = (text?: string) => text?.trim() || "Not provided";
-  return whatsappLink([
+  return [
     `Hello, I would like to arrange payment for ${feeName}.`,
     `Tracking number: ${shipment.trackingCode}`,
     `Fee: ${feeName}`,
@@ -27,5 +36,5 @@ export function shipmentPaymentLink(shipment: Shipment, feeName: string, formatt
     `Status: ${shipment.status}`,
     `Expected delivery: ${value(shipment.eta)}`,
     "Please send me the payment instructions.",
-  ].join("\n"));
+  ].join("\n");
 }
