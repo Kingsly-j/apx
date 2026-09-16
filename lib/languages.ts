@@ -1,7 +1,8 @@
+import { italianTranslations } from "./italian-translations";
 import { internationalTranslations } from "./international-translations";
-export type Language = "en" | "fr" | "es" | "ar" | "de" | "pt" | "zh-CN";
-export const languageNames: Record<Language,string> = {en:"English",fr:"Français",es:"Español",ar:"العربية",de:"Deutsch",pt:"Portugu\u00eas","zh-CN":"\u7b80\u4f53\u4e2d\u6587"};
-export const localeNames: Record<Language,string> = {en:"en-US",fr:"fr-FR",es:"es-ES",ar:"ar",de:"de-DE",pt:"pt-BR","zh-CN":"zh-CN"};
+export type Language = "it" | "en" | "fr" | "es" | "ar" | "de" | "pt" | "zh-CN";
+export const languageNames: Record<Language,string> = {it:"Italiano",en:"English",fr:"Français",es:"Español",ar:"العربية",de:"Deutsch",pt:"Portugu\u00eas","zh-CN":"\u7b80\u4f53\u4e2d\u6587"};
+export const localeNames: Record<Language,string> = {it:"it-IT",en:"en-US",fr:"fr-FR",es:"es-ES",ar:"ar",de:"de-DE",pt:"pt-BR","zh-CN":"zh-CN"};
 // Interface copy is translated locally; customer-entered shipment data is retained.
 const translations: Record<string,[string,string,string]> = {
 "Send payment details via":["Envoyer les détails du paiement via","Enviar los detalles del pago por","إرسال تفاصيل الدفع عبر"],
@@ -21,6 +22,13 @@ const translations: Record<string,[string,string,string]> = {
 export function translate(text:string,language:Language):string {
   if(language==='en')return text;
   const key=text.trim().replace(/\s+/g,' ');
+  if(language==='it') {
+    if(italianTranslations[key])return text.replace(text.trim(),italianTranslations[key]);
+    const numbered=key.match(/^(History event|Route stop|Remove event|Remove stop|Shipment history|Complete shipment route) (.+)$/);
+    if(numbered){const labels:Record<string,string>={'History event':'Evento','Route stop':'Tappa','Remove event':'Rimuovi evento','Remove stop':'Rimuovi tappa','Shipment history':'Cronologia della spedizione','Complete shipment route':'Percorso completo della spedizione'};return labels[numbered[1]]+' '+numbered[2];}
+    if(key.endsWith(' date'))return translate(key.slice(0,-5),language)+' (data)';
+    return text;
+  }
   const internationalIndex = language==='de'?0:language==='pt'?1:language==='zh-CN'?2:-1;
   const translated=internationalIndex>=0 ? internationalTranslations[key]?.[internationalIndex as 0|1|2] : translations[key]?.[language==='fr'?0:language==='es'?1:2];
   if(translated)return text.replace(text.trim(),translated);
