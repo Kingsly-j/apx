@@ -13,7 +13,7 @@ export default function ReferencePage({ html }: { html: string }) {
     const decoded = text.replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/&quot;/g, '\"').replace(/&#0?39;|&#x27;/g, "'");
     return t(decoded).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
-  const translatedHtml = html.replace(/>([^<]+)</g, (_match, text) => `>${translateHtmlText(text)}<`).replace(/placeholder="([^"]*)"/g, (_match, text) => `placeholder="${translateHtmlText(text)}"`);
+  const translatedHtml = html.replaceAll("bluecrest-logo.svg", "apeex-logistics.jpg").replaceAll("Bluecrest Logistics", "Apeex Logistics").replaceAll("support@bluecrestlogistics.com", "").replaceAll("+1 (915) 201-9157", "Live chat").replaceAll("Chat on WhatsApp", "Chat with support").replaceAll("WhatsApp", "live chat").replaceAll("mailto:", "#support-chat").replaceAll("tel:+19152019157", "#support-chat").replace(/https:\/\/wa\.me\/19152019157[^"']*/g, "#support-chat").replace(/>([^<]+)</g, (_match, text) => `>${translateHtmlText(text)}<`).replace(/placeholder="([^"]*)"/g, (_match, text) => `placeholder="${translateHtmlText(text)}"`);
   const router = useRouter();
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -57,8 +57,8 @@ export default function ReferencePage({ html }: { html: string }) {
     if (!feedback) return;
     feedback.hidden = false;
     feedback.textContent = form.dataset.formKind === "tracking"
-      ? "Live shipment tracking is not connected yet. Please contact support@bluecrestlogistics.com for shipment updates."
-      : "Your message has not been sent. Contact delivery is not connected yet. Please email support@bluecrestlogistics.com directly.";
+      ? "Live shipment tracking is not connected yet. Please use live chat for help."
+      : "Your message has not been sent. Please use live chat for help.";
     feedback.focus();
   }} dangerouslySetInnerHTML={{ __html: translatedHtml }} />;
 }

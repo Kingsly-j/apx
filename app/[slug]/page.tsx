@@ -8,7 +8,7 @@ export function generateStaticParams() { return pages.map((slug) => ({ slug }));
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const titles: Record<string, string> = { about: "About Us", services: "Our Services", order: "Track Your Shipment", contact: "Contact Us", diplomatic: "Diplomatic Services" };
-  return { title: `${titles[slug] || "Page"} | Bluecrest Logistics` };
+  return { title: `${titles[slug] || "Page"} | Apeex Logistics` };
 }
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -222,10 +222,10 @@ export default function AdminPage() {
         ...extraDetails,
         id,
         trackingCode,
-        customerName: form.customerName.trim() || "Bluecrest Logistics Client",
+        customerName: form.customerName.trim() || "Apeex Logistics Client",
         customerEmail: form.customerEmail.trim(),
         cargoDescription: form.cargoDescription.trim() || "Commercial freight shipment",
-        origin: form.origin.trim() || "Bluecrest Logistics dispatch hub",
+        origin: form.origin.trim() || "Apeex Logistics dispatch hub",
         destination: form.destination.trim() || "Client receiving point",
         location: form.location.trim() || form.origin.trim() || "Awaiting pickup",
         status,
@@ -374,12 +374,12 @@ export default function AdminPage() {
         aria-label="Admin portal hidden"
       >
         <div className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">Bluecrest Logistics</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">Apeex Logistics</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-blue-950 sm:text-5xl">
             Operations workspace
           </h1>
           <p className="mx-auto mt-5 max-w-2xl leading-7 text-blue-950/65">
-            This workspace is restricted to authorized Bluecrest Logistics staff.
+            This workspace is restricted to authorized Apeex Logistics staff.
           </p>
         </div>
       </div>
@@ -391,7 +391,7 @@ export default function AdminPage() {
       <div className="min-h-[72vh] bg-[#f5f8fc] px-4 py-16 sm:px-6">
         <form onSubmit={loginAdmin} className="mx-auto max-w-md rounded-[28px] border border-blue-100 bg-white p-6 shadow-xl shadow-blue-950/10 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">Admin login</p>
-          <h1 className="mt-3 text-3xl font-semibold text-blue-950">Bluecrest operations access</h1>
+          <h1 className="mt-3 text-3xl font-semibold text-blue-950">Apeex operations access</h1>
           <p className="mt-3 text-sm leading-6 text-blue-950/65">
             Enter an authorized admin account to manage shipments, locations, photos, and tracking status.
           </p>
@@ -446,7 +446,7 @@ export default function AdminPage() {
                 Create shipments and control tracking updates.
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-white/78 sm:text-lg sm:leading-8">
-                Use this workspace to create customer shipments, generate Bluecrest tracking codes, update shipment status, and keep current location details fresh for the public tracking page.
+                Use this workspace to create customer shipments, generate Apeex tracking codes, update shipment status, and keep current location details fresh for the public tracking page.
               </p>
             </div>
             <div className="grid gap-3 rounded-[24px] border border-white/15 bg-white/10 p-5 backdrop-blur">
@@ -595,7 +595,7 @@ export default function AdminPage() {
                 ) : (
                   <div className="rounded-[22px] bg-blue-50 p-6 text-blue-950/70">
                     {currentAdmin?.role === "Super admin"
-                      ? "No shipments yet. Create the first cargo file to generate a Bluecrest tracking code."
+                      ? "No shipments yet. Create the first cargo file to generate an Apeex tracking code."
                       : "No shipments created by this admin yet."}
                   </div>
                 )}
@@ -608,7 +608,7 @@ export default function AdminPage() {
                 <button type="button" onClick={() => navigateSection("records")} className="mb-4 min-h-11 rounded-full bg-blue-50 px-4 text-sm font-semibold text-blue-700 lg:hidden">Back to records</button>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600">Update shipment</p>
                 <div className="mt-4 rounded-[22px] bg-blue-50 p-5">
-                  <p className="text-sm font-semibold text-blue-950">Bluecrest tracking code</p>
+                  <p className="text-sm font-semibold text-blue-950">Apeex tracking code</p>
                   <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="break-words text-2xl font-semibold text-blue-700">{selectedShipment.trackingCode}</p>
                     <button

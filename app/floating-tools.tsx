@@ -1,10 +1,9 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { languageNames, type Language } from "@/lib/languages";
 import { recordVisit, sendVisitorMessage, visitorId, watchConversation, watchOperatorStatus, type SupportConversation } from "@/lib/live-support";
-import { whatsappLink, WHATSAPP_DISPLAY_NUMBER } from "@/lib/whatsapp";
 import { useLanguage } from "./language-provider";
 
 export default function FloatingTools() {
@@ -20,15 +19,6 @@ export default function FloatingTools() {
   const pathname = usePathname();
   const root = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
-  const [code, setCode] = useState("");
-
-  useEffect(() => {
-    const timer = setTimeout(
-      () => setCode(new URLSearchParams(location.search).get("code") || ""),
-      0,
-    );
-    return () => clearTimeout(timer);
-  }, [pathname]);
   useEffect(()=>{const saved=localStorage.getItem("bluecrest-logistics-support-email");if(saved){setEmail(saved);setEmailPermission(true)}},[]);
   useEffect(()=>{const id=visitorId();void recordVisit(id,pathname,email);const a=watchConversation(id,setConversation),b=watchOperatorStatus(setOperatorOnline);return()=>{a();b()}},[pathname,email]);
 
@@ -58,16 +48,6 @@ export default function FloatingTools() {
       document.removeEventListener("keydown", escape);
     };
   }, [open, chatOpen]);
-
-  const defaultWhatsAppLink = useMemo(
-    () =>
-      whatsappLink(
-        code
-          ? `Hello, I need help with shipment ${code}.`
-          : "Hello, I need help with my shipment.",
-      ),
-    [code],
-  );
 
   async function handleSendChat() {
     const trimmed = chatInput.trim();
@@ -134,7 +114,7 @@ export default function FloatingTools() {
           <div className="live-chat-header">
             <div>
               <span className={`live-chat-status-dot ${operatorOnline?"online":""}`} aria-hidden="true" />
-              <strong>Bluecrest support</strong>
+              <strong>Apeex support</strong>
             </div>
             <button
               type="button"
@@ -204,16 +184,6 @@ export default function FloatingTools() {
         <span>{language.toUpperCase()}</span>
       </button>
 
-      <a
-        className="floating-whatsapp"
-        href={defaultWhatsAppLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={t("Chat on WhatsApp")}
-        title={`${t("Chat on WhatsApp")} ${WHATSAPP_DISPLAY_NUMBER}`}
-      >
-        <i className="fab fa-whatsapp" aria-hidden="true" />
-      </a>
     </div>
   );
 }
