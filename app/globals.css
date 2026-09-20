@@ -249,6 +249,12 @@ a:focus-visible, button:focus-visible { outline: 3px solid #60a5fa; outline-offs
 .live-chat-input-row input { flex:1; min-height:42px; border:1px solid #d9e4ee; border-radius:12px; background:#f8fafc; padding:10px 12px; color:#1d2a39; }
 .live-chat-input-row button { min-width:72px; min-height:42px; border:0; border-radius:12px; background:#2563eb; color:white; font-weight:700; }
 .live-chat-input-row button:disabled { opacity:0.6; cursor:not-allowed; }
+.support-email-consent { display:grid; gap:14px; padding:20px; background:white; color:#17324d; }
+.support-email-consent > * { width:100%; }
+.support-email-consent h2,.support-email-consent p,.support-email-consent input,.support-email-consent button { margin:0; border-radius:14px; padding:14px; }
+.support-email-consent h2,.support-email-consent p { background:white; }
+.support-email-consent input { border:1px solid #d9e4ee; }
+.support-email-consent button { border:0; background:#2563eb; color:white; font-weight:700; }
 .language-popover { position:absolute; bottom:130px; inset-inline-end:0; width:210px; padding:10px; border:1px solid #dce5ee; border-radius:16px; background:white; box-shadow:0 10px 35px #14233730; color:#17324d; }
 .language-popover-heading { display:flex; align-items:center; justify-content:space-between; padding:0 8px 5px; }
 .language-popover-heading button { min-width:40px; min-height:40px; font-size:22px; }
@@ -268,7 +274,8 @@ html[dir=rtl] .tracking-milestones li:last-child:before { left:50%; }
  .floating-tools { inset-inline-end:14px; bottom:calc(14px + env(safe-area-inset-bottom)); }
  .floating-livechat, .floating-whatsapp { width:52px; height:52px; font-size:27px; }
  .floating-whatsapp { left:14px; bottom:calc(14px + env(safe-area-inset-bottom)); }
- .live-chat-panel { width:min(320px, calc(100vw - 20px)); }
+ .live-chat-panel { position:fixed; right:10px; bottom:78px; width:calc(100vw - 20px); max-height:calc(100dvh - 100px); z-index:90; }
+ .live-chat-messages { max-height:calc(100dvh - 285px); }
  .shipment-tracking-page { padding-bottom:150px; }
  html[dir=rtl] .tracking-current { text-align:right; }
  html[dir=rtl] .tracking-milestones li { text-align:right; }

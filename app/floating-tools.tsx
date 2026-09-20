@@ -14,6 +14,8 @@ export default function FloatingTools() {
   const [chatBusy, setChatBusy] = useState(false);
   const [conversation, setConversation] = useState<SupportConversation | null>(null);
   const [operatorOnline, setOperatorOnline] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailPermission, setEmailPermission] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const pathname = usePathname();
   const root = useRef<HTMLDivElement>(null);
@@ -27,7 +29,8 @@ export default function FloatingTools() {
     );
     return () => clearTimeout(timer);
   }, [pathname]);
-  useEffect(()=>{const id=visitorId();void recordVisit(id,pathname);const a=watchConversation(id,setConversation),b=watchOperatorStatus(setOperatorOnline);return()=>{a();b()}},[pathname]);
+  useEffect(()=>{const saved=localStorage.getItem("bluecrest-logistics-support-email");if(saved){setEmail(saved);setEmailPermission(true)}},[]);
+  useEffect(()=>{const id=visitorId();void recordVisit(id,pathname,email);const a=watchConversation(id,setConversation),b=watchOperatorStatus(setOperatorOnline);return()=>{a();b()}},[pathname,email]);
 
   useEffect(() => {
     if (!open && !chatOpen) return;
@@ -74,7 +77,7 @@ export default function FloatingTools() {
     setChatBusy(true);
 
     try {
-      await sendVisitorMessage(visitorId(),trimmed,pathname);
+      await sendVisitorMessage(visitorId(),trimmed,pathname,email);
     } catch (error) {
       console.error("Live chat failed", error);
       setChatInput(trimmed);
@@ -142,7 +145,7 @@ export default function FloatingTools() {
             </button>
           </div>
 
-          <div className="live-chat-messages">
+          {!emailPermission ? <div className="support-email-consent" role="dialog" aria-label="Support email permission"><h2>Stay connected with support</h2><p>Use your saved browser email or enter it below so our operators can identify your chat.</p><input type="email" name="email" autoComplete="email" value={email} onChange={event=>setEmail(event.target.value)} placeholder="you@example.com"/><button type="button" disabled={!email.includes("@")} onClick={()=>{localStorage.setItem("bluecrest-logistics-support-email",email.trim());setEmailPermission(true)}}>Continue to chat</button></div> : <><div className="live-chat-messages">
             <div className="live-chat-bubble assistant"><p>{operatorOnline?"An operator is online. Send a message and we’ll respond here.":"Our operators are currently away. Leave a message and an operator will respond here as soon as possible."}</p></div>{(conversation?.messages??[]).map(message => (
               <div
                 key={message.id}
@@ -174,7 +177,7 @@ export default function FloatingTools() {
             >
               {chatBusy ? "..." : "Send"}
             </button>
-          </div>
+          </div></>}
         </div>
       )}
 
