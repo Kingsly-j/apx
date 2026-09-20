@@ -3,29 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { languageNames, type Language } from "@/lib/languages";
-import { buildSupportFallback } from "@/lib/live-chat";
+import { recordVisit, sendVisitorMessage, visitorId, watchConversation, watchOperatorStatus, type SupportConversation } from "@/lib/live-support";
 import { whatsappLink, WHATSAPP_DISPLAY_NUMBER } from "@/lib/whatsapp";
 import { useLanguage } from "./language-provider";
-
-type ChatMessage = {
-  role: "assistant" | "user";
-  content: string;
-  needsHuman?: boolean;
-  contactHref?: string;
-};
 
 export default function FloatingTools() {
   const [open, setOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatBusy, setChatBusy] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      role: "assistant",
-      content:
-        "Hi! I can answer common questions about tracking, delivery, pricing, and services. If I can’t help, I’ll connect you with our support team.",
-    },
-  ]);
+  const [conversation, setConversation] = useState<SupportConversation | null>(null);
+  const [operatorOnline, setOperatorOnline] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const pathname = usePathname();
   const root = useRef<HTMLDivElement>(null);
@@ -39,6 +27,7 @@ export default function FloatingTools() {
     );
     return () => clearTimeout(timer);
   }, [pathname]);
+  useEffect(()=>{const id=visitorId();void recordVisit(id,pathname);const a=watchConversation(id,setConversation),b=watchOperatorStatus(setOperatorOnline);return()=>{a();b()}},[pathname]);
 
   useEffect(() => {
     if (!open && !chatOpen) return;
@@ -81,47 +70,14 @@ export default function FloatingTools() {
     const trimmed = chatInput.trim();
     if (!trimmed || chatBusy) return;
 
-    const nextHistory = chatMessages.slice(-6);
-    const userMessage: ChatMessage = { role: "user", content: trimmed };
-
-    setChatMessages((prev) => [...prev, userMessage]);
     setChatInput("");
     setChatBusy(true);
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: trimmed,
-          history: nextHistory,
-        }),
-      });
-
-      const data = await response.json();
-      const fallback = buildSupportFallback(trimmed);
-
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data?.answer || fallback.answer,
-          needsHuman: Boolean(data?.needsHuman),
-          contactHref: data?.adminContactHref || fallback.adminContactHref,
-        },
-      ]);
+      await sendVisitorMessage(visitorId(),trimmed,pathname);
     } catch (error) {
       console.error("Live chat failed", error);
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            "I’m having trouble reaching support right now. Please contact our team directly via WhatsApp or email for help.",
-          needsHuman: true,
-          contactHref: defaultWhatsAppLink,
-        },
-      ]);
+      setChatInput(trimmed);
     } finally {
       setChatBusy(false);
     }
@@ -174,7 +130,7 @@ export default function FloatingTools() {
         <div className="live-chat-panel" aria-live="polite">
           <div className="live-chat-header">
             <div>
-              <span className="live-chat-status-dot" aria-hidden="true" />
+              <span className={`live-chat-status-dot ${operatorOnline?"online":""}`} aria-hidden="true" />
               <strong>Bluecrest support</strong>
             </div>
             <button
@@ -187,21 +143,12 @@ export default function FloatingTools() {
           </div>
 
           <div className="live-chat-messages">
-            {chatMessages.map((message, index) => (
+            <div className="live-chat-bubble assistant"><p>{operatorOnline?"An operator is online. Send a message and we’ll respond here.":"Our operators are currently away. Leave a message and an operator will respond here as soon as possible."}</p></div>{(conversation?.messages??[]).map(message => (
               <div
-                key={`${message.role}-${index}`}
-                className={`live-chat-bubble ${message.role}`}
+                key={message.id}
+                className={`live-chat-bubble ${message.sender === "visitor" ? "user" : "assistant"}`}
               >
-                <p>{message.content}</p>
-                {message.needsHuman && message.contactHref ? (
-                  <a
-                    href={message.contactHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Contact support
-                  </a>
-                ) : null}
+                <p>{message.text}</p>
               </div>
             ))}
           </div>
@@ -217,7 +164,7 @@ export default function FloatingTools() {
                   void handleSendChat();
                 }
               }}
-              placeholder="Ask a question..."
+              placeholder="Write your message..."
             />
             <button
               type="button"
