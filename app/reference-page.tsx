@@ -13,7 +13,7 @@ export default function ReferencePage({ html }: { html: string }) {
     const decoded = text.replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/&quot;/g, '\"').replace(/&#0?39;|&#x27;/g, "'");
     return t(decoded).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
-  const translatedHtml = html.replaceAll("bluecrest-logo.svg", "apeex-logistics.jpg").replaceAll("Bluecrest Logistics", "Apeex Logistics").replaceAll("support@bluecrestlogistics.com", "").replaceAll("+1 (915) 201-9157", "Live chat").replaceAll("Chat on WhatsApp", "Chat with support").replaceAll("WhatsApp", "live chat").replaceAll("mailto:", "#support-chat").replaceAll("tel:+19152019157", "#support-chat").replace(/https:\/\/wa\.me\/19152019157[^"']*/g, "#support-chat").replace(/>([^<]+)</g, (_match, text) => `>${translateHtmlText(text)}<`).replace(/placeholder="([^"]*)"/g, (_match, text) => `placeholder="${translateHtmlText(text)}"`);
+  const translatedHtml = html.replaceAll("bluecrest-logo.svg", "apeex-logistics.jpg").replaceAll("Bluecrest Logistics", "Apeex Logistics").replaceAll("support@bluecrestlogistics.com", "apeexline@gmail.com").replaceAll("+1 (915) 201-9157", "Live chat").replaceAll("Chat on WhatsApp", "Chat with support").replaceAll("WhatsApp", "live chat").replaceAll("mailto:apeexline@gmail.com", "mailto:apeexline@gmail.com").replaceAll("tel:+19152019157", "#support-chat").replace(/https:\/\/wa\.me\/19152019157[^"']*/g, "#support-chat").replace(/>([^<]+)</g, (_match, text) => `>${translateHtmlText(text)}<`).replace(/placeholder="([^"]*)"/g, (_match, text) => `placeholder="${translateHtmlText(text)}"`);
   const router = useRouter();
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
