@@ -79,6 +79,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid #60a5fa; outline-offs
   .admin-dashboard[data-mobile-section="overview"] [data-dashboard-panel="overview"],
   .admin-dashboard[data-mobile-section="create"] [data-dashboard-panel="create"],
   .admin-dashboard[data-mobile-section="records"] [data-dashboard-panel="records"],
+  .admin-dashboard[data-mobile-section="support"] [data-dashboard-panel="support"],
   .admin-dashboard[data-mobile-section="details"] [data-dashboard-panel="details"],
   .admin-dashboard[data-mobile-section="admins"] [data-dashboard-panel="admins"] { display: block; }
 }
