@@ -7,6 +7,9 @@ import type { ReactNode } from "react";
 import { statusLabel, trackingMilestones, type Shipment, type ShipmentStatus } from "@/lib/shipments";
 import ShipmentRoute from "./shipment-route";
 import { shipmentMilestoneDate } from "@/lib/shipment-progress";
+import { useState } from "react";
+import { getMessaging, getToken, isSupported } from "firebase/messaging";
+import { firebaseApp } from "@/utils/firebase/client";
 
 function Icon({name}:{name:string}) {
   const { localize } = useLanguage();
@@ -34,6 +37,44 @@ function amount(value?:string,currency?:string) {
 }
 export default function ShipmentResult({shipment}:{shipment:Shipment}) {
   const { localize, locale } = useLanguage();
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertBusy, setAlertBusy] = useState(false);
+
+  async function subscribeToUpdates() {
+    setAlertBusy(true);
+    setAlertMessage("");
+    try {
+      if (!(await isSupported())) throw new Error("This browser does not support web push notifications.");
+      if (!("Notification" in window) || !("serviceWorker" in navigator)) throw new Error("This browser does not support notifications.");
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") throw new Error("Notification permission was not granted. You can enable it in your browser settings.");
+      const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+      await navigator.serviceWorker.ready;
+      const workerConfig = {
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      };
+      const worker = registration.active ?? registration.waiting ?? registration.installing;
+      worker?.postMessage({ type: "FIREBASE_CONFIG", config: workerConfig });
+      const messaging = getMessaging(firebaseApp);
+      const token = await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY, serviceWorkerRegistration: registration });
+      if (!token) throw new Error("Could not register this device for notifications.");
+      const response = await fetch("/api/shipment-alerts", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackingCode: shipment.trackingCode, token }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || "Could not save this device subscription.");
+      setAlertMessage("This device is subscribed to shipment notifications.");
+    } catch (error) {
+      setAlertMessage(error instanceof Error ? error.message : "Could not save your subscription.");
+    } finally {
+      setAlertBusy(false);
+    }
+  }
 
   const current=statusLabel(shipment.status);
   const currentIndex=trackingMilestones.findIndex(status=>status===current);
@@ -50,6 +91,12 @@ export default function ShipmentResult({shipment}:{shipment:Shipment}) {
         <Card title="Shipment Details" icon="clipboard-list"><Row icon="weight-hanging" label="Weight" value={shipment.weight ? `${shipment.weight} kg`:undefined}/><Row icon="box" label="Type" value={shipment.shipmentType}/><Row icon="calendar-alt" label="Shipped" value={displayDate(shipment.shippedAt,false,locale)}/><Row icon="cubes" label="Cargo" value={shipment.cargoDescription}/></Card>
         <Card title="Status Information" icon="chart-line"><Row icon="clock" label="Status" value={<Badge status={shipment.status}/>}/><Row icon="map-marker-alt" label="Location" value={shipment.location}/></Card>
       </div>
+    </section>
+    <section className="tracking-surface" aria-labelledby="shipment-alert-heading">
+      <h2 id="shipment-alert-heading" className="tracking-section-title">Get shipment updates on this device</h2>
+      <p>Allow notifications on this device to receive alerts when this shipment’s status or tracking details change.</p>
+      <button type="button" onClick={subscribeToUpdates} disabled={alertBusy} className="mt-4 min-h-12 rounded-xl bg-blue-600 px-5 font-semibold text-white disabled:opacity-60">{alertBusy ? "Enabling…" : "Enable device notifications"}</button>
+      <p role="status" aria-live="polite" className="mt-3 text-sm">{alertMessage}</p>
     </section>
     <section className="tracking-surface"><h2 className="tracking-section-title">Shipment Progress</h2><ol className="tracking-milestones" aria-label="Shipment progress">{trackingMilestones.map((status,index)=>{
       const date=shipmentMilestoneDate(shipment,status);

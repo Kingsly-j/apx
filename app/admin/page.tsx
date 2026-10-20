@@ -6,6 +6,8 @@ import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   deleteShipmentRecord,
+  watchAdminActivity,
+  AdminActivity,
   generateTrackingCode,
   progressForStatus,
   readShipments,
@@ -122,6 +124,9 @@ export default function AdminPage() {
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginMessage, setLoginMessage] = useState("");
   const [newAdminForm, setNewAdminForm] = useState({ email: "", password: "" });
+  const [activity, setActivity] = useState<AdminActivity[]>([]);
+  const [latestActivity, setLatestActivity] = useState<AdminActivity | null>(null);
+  const [activityError, setActivityError] = useState(false);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -162,6 +167,17 @@ export default function AdminPage() {
     }, 0);
     return () => window.clearTimeout(timeout);
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let initialized = false;
+    return watchAdminActivity(items => {
+      setActivity(items);
+      if (!initialized) { initialized = true; return; }
+      const newest = items[0];
+      if (newest && newest.actor.toLowerCase() !== currentAdmin?.email.toLowerCase()) setLatestActivity(newest);
+    }, () => setActivityError(true));
+  }, [isAuthenticated, currentAdmin?.email]);
 
   const visibleShipments = useMemo(() => {
     if (!currentAdmin) return [];
@@ -262,7 +278,7 @@ export default function AdminPage() {
     setAdminMessage("");
 
     try {
-      const nextShipments = await deleteShipmentRecord(shipment.id, shipments);
+      const nextShipments = await deleteShipmentRecord(shipment.id, shipments, currentAdmin?.email);
       const nextVisibleShipments =
         currentAdmin?.role === "Super admin"
           ? nextShipments
@@ -426,6 +442,9 @@ export default function AdminPage() {
 
   return localize(
     <div data-mobile-section={mobileSection} className="admin-dashboard relative bg-[#f5f8fc] pb-20 pt-4 sm:pb-24 lg:pt-10">
+      {latestActivity ? <div role="alert" className="fixed right-4 top-4 z-[100] w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-blue-200 bg-white p-5 text-blue-950 shadow-2xl" aria-live="assertive">
+        <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-wider text-blue-600">Platform change</p><p className="mt-2 font-semibold">{latestActivity.summary}</p><p className="mt-2 text-xs text-blue-950/60">{latestActivity.actor} · {latestActivity.trackingCode}</p></div><button type="button" aria-label="Dismiss notification" onClick={() => setLatestActivity(null)} className="text-xl leading-none text-blue-950/50">×</button></div>
+      </div> : null}
       <nav aria-label="Dashboard sections" className="sticky top-0 z-40 mx-4 mb-5 rounded-2xl border border-blue-100 bg-white/95 p-3 shadow-lg backdrop-blur lg:hidden">
         <label htmlFor="dashboard-section" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-blue-600">Admin dashboard</label>
         <select id="dashboard-section" value={mobileSection} onChange={event => navigateSection(event.target.value)} className="min-h-11 w-full rounded-xl border border-blue-200 bg-blue-50 px-3 text-base font-semibold text-blue-950">
@@ -474,6 +493,11 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+        </section>
+        <section aria-label="Recent platform activity" className="mt-6 rounded-2xl border border-blue-100 bg-white p-5">
+          <div className="flex items-center justify-between gap-3"><h2 className="font-semibold text-blue-950">Recent platform activity</h2><span className="text-xs text-blue-950/55">Live updates</span></div>
+          {activityError ? <p className="mt-3 text-sm text-amber-700">Activity feed is unavailable. Check Firestore rules and the admin_activity index.</p> : null}
+          <div className="mt-3 grid gap-2">{activity.slice(0, 5).map(item => <div key={item.id} className="rounded-xl bg-blue-50 p-3 text-sm"><span className="font-semibold text-blue-800">{item.action}</span><span className="text-blue-950"> — {item.summary}</span><p className="mt-1 text-xs text-blue-950/55">{item.actor} · {item.trackingCode} · {new Date(item.createdAt).toLocaleString()}</p></div>)}{activity.length === 0 ? <p className="text-sm text-blue-950/55">No activity recorded yet.</p> : null}</div>
         </section>
 
         <section className="contents lg:mt-10 lg:grid lg:gap-8 lg:grid-cols-[0.92fr_1.08fr]">

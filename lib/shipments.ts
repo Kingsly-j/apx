@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDocsFromServer, onSnapshot, orderBy, query, runTransaction, setDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocsFromServer, onSnapshot, orderBy, query, runTransaction, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "@/utils/firebase/client";
 
 export type ShipmentStatus = "Booked" | "In transit" | "Customs" | "Delivered" | "Order Confirmed" | "Picked by Courier" | "On The Way" | "Custom Hold";
@@ -19,6 +19,8 @@ export type Shipment = {
 };
 
 export const SHIPMENTS_COLLECTION = "shipments";
+export const ADMIN_ACTIVITY_COLLECTION = "admin_activity";
+export type AdminActivity = { id: string; action: "created" | "updated" | "deleted"; summary: string; shipmentId: string; trackingCode: string; actor: string; createdAt: string };
 export const shipmentStatuses: ShipmentStatus[] = ["Order Confirmed", "Picked by Courier", "On The Way", "Custom Hold", "Delivered", "Booked", "In transit", "Customs"];
 export const trackingMilestones = ["Order Confirmed", "Picked by Courier", "On The Way", "Custom Hold", "Delivered"] as const;
 export function statusLabel(status: ShipmentStatus) {
@@ -26,6 +28,17 @@ export function statusLabel(status: ShipmentStatus) {
 }
 // Kept for existing UI messages. A successful operation now always means Firestore acknowledged it.
 export function shipmentStorageNotice() { return ""; }
+
+export async function recordAdminActivity(activity: Omit<AdminActivity, "id" | "createdAt">) {
+  await cloudOperation(addDoc(collection(db, ADMIN_ACTIVITY_COLLECTION), { ...activity, createdAt: new Date().toISOString(), createdAtServer: serverTimestamp() }));
+}
+
+export function watchAdminActivity(onChange: (items: AdminActivity[]) => void, onError: () => void) {
+  return onSnapshot(query(collection(db, ADMIN_ACTIVITY_COLLECTION), orderBy("createdAt", "desc")), snapshot => {
+    if (snapshot.metadata.hasPendingWrites) return;
+    onChange(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as AdminActivity)));
+  }, onError);
+}
 
 async function cloudOperation<T>(operation: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -67,6 +80,7 @@ export async function saveShipment(shipment: Shipment, currentShipments: Shipmen
     history: [activityEvent(shipment, "Shipment created and tracking number assigned.", shipment.createdAt), ...(shipment.history ?? [])],
   };
   await cloudOperation(setDoc(doc(db, SHIPMENTS_COLLECTION, shipment.id), saved));
+  await recordAdminActivity({ action: "created", summary: `Created shipment for ${shipment.customerName}`, shipmentId: shipment.id, trackingCode: shipment.trackingCode, actor: shipment.createdBy });
   return [saved, ...currentShipments.filter(item => item.id !== shipment.id)];
 }
 
@@ -110,15 +124,28 @@ export async function updateShipmentRecord(id: string, updates: Partial<Shipment
       if (!Object.prototype.hasOwnProperty.call(updates.milestoneDates ?? {}, milestone)) next.milestoneDates[milestone] = now;
     }
     if (descriptions.length) next.history = [...(next.history ?? []), activityEvent(next, descriptions.join(" "), now)];
+    const activityId = descriptions.length ? crypto.randomUUID() : undefined;
     transaction.update(reference, { ...patch, ...(next.history ? { history: next.history } : {}), ...(next.milestoneDates ? { milestoneDates: next.milestoneDates } : {}) });
-    return next;
+    if (activityId) transaction.set(doc(db, ADMIN_ACTIVITY_COLLECTION, activityId), { action: "updated", summary: descriptions.join(" "), shipmentId: id, trackingCode: next.trackingCode, actor: next.history?.at(-1)?.recordedBy || next.createdBy, createdAt: now, createdAtServer: serverTimestamp() });
+    return { ...next, _notificationSummary: descriptions.join(" ") };
   }));
+  const summary = (saved as Shipment & { _notificationSummary?: string })._notificationSummary;
+  if (summary) {
+    try {
+      const siteUrl = typeof window === "undefined" ? "" : window.location.origin;
+      await fetch(`${siteUrl}/api/shipment-alerts/notify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ shipmentId: id, summary }) });
+    } catch (error) { console.error("Shipment push notification request failed", error); }
+    delete (saved as Shipment & { _notificationSummary?: string })._notificationSummary;
+  }
   return currentShipments.map(item => item.id === id ? saved : item);
 }
-export async function deleteShipmentRecord(id: string, currentShipments: Shipment[]) {
+export async function deleteShipmentRecord(id: string, currentShipments: Shipment[], actor = "Admin") {
+  const shipment = currentShipments.find(item => item.id === id);
   await cloudOperation(deleteDoc(doc(db, SHIPMENTS_COLLECTION, id)));
+  if (shipment) await recordAdminActivity({ action: "deleted", summary: `Deleted shipment for ${shipment.customerName}`, shipmentId: id, trackingCode: shipment.trackingCode, actor });
   return currentShipments.filter(item => item.id !== id);
 }
+
 export function findShipment(reference: string, shipments: Shipment[]) {
   const normalized = reference.trim().toLowerCase();
   return normalized ? shipments.find(item => item.trackingCode.toLowerCase() === normalized || item.id.toLowerCase() === normalized) ?? null : null;
